@@ -29,13 +29,9 @@ public class ProcessManager {
     public static void main(String[] args) throws Exception{
         // Đọc danh sách tiến trình
         listProcess();
-       /*String line;
-        while ((line = listProcess().readLine()) != null) {
-            System.out.println(line);
-        }*/
 
         //truyền vào tiến trình muốn kill
-        //killProcess(PID);
-        //shutDown();
+        killProcess(999999999);
+        shutDown();
     }
 }
