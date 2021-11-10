@@ -11,7 +11,10 @@ public class ProcessManager {
 
         Process process = Runtime.getRuntime().exec(TASKLIST);
         BufferedReader listProcess = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
+        String line;
+        while ((line = listProcess.readLine()) != null) {
+            System.out.println(line);
+        }
         return listProcess;
     }
 
@@ -24,8 +27,15 @@ public class ProcessManager {
     }
 
     public static void main(String[] args) throws Exception{
+        // Đọc danh sách tiến trình
         listProcess();
-        killProcess(00000);
-        shutDown();
+       /*String line;
+        while ((line = listProcess().readLine()) != null) {
+            System.out.println(line);
+        }*/
+
+        //truyền vào tiến trình muốn kill
+        //killProcess(PID);
+        //shutDown();
     }
 }
