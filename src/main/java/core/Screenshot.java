@@ -106,7 +106,7 @@ public class Screenshot {
     }
 
     public static void paintCursor(BufferedImage image) throws IOException {
-        Image cursor = ImageIO.read(new File("oshi-demo\\image\\cursor.png"));
+        Image cursor = ImageIO.read(new File("image\\cursor.png"));
         int x = MouseInfo.getPointerInfo().getLocation().x;
         int y = MouseInfo.getPointerInfo().getLocation().y;
         Graphics2D graphics2D = image.createGraphics();
