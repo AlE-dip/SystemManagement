@@ -32,6 +32,6 @@ public class ProcessManager {
 
         //truyền vào tiến trình muốn kill
         killProcess(999999999);
-        shutDown();
+        //shutDown();
     }
 }
