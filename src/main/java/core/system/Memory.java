@@ -26,6 +26,14 @@ public class Memory {
         virtualMemory = new VirtualMemory(memory.getVirtualMemory());
     }
 
+    public void refresh(GlobalMemory memory) {
+        physicalTitle = memory.toString();
+        total = memory.getTotal();
+        available = memory.getAvailable();
+        use = total - available;
+        virtualMemory.refresh(memory.getVirtualMemory());
+    }
+
     public String getPhysicalTitle() {
         return physicalTitle;
     }

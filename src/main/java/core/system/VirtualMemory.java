@@ -20,6 +20,13 @@ public class VirtualMemory {
         swapavAilable = swapTotal - swapUsed;
     }
 
+    public void refresh(oshi.hardware.VirtualMemory virtualMemory) {
+        virtualTitle = virtualMemory.toString();
+        swapUsed = virtualMemory.getSwapUsed();
+        swapTotal = virtualMemory.getSwapTotal();
+        swapavAilable = swapTotal - swapUsed;
+    }
+
     public String getVirtualTitle() {
         return virtualTitle;
     }

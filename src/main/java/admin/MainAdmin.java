@@ -1,20 +1,14 @@
-package admin.client;
+package admin;
 
-import core.Camera;
 import core.Screenshot;
 import org.opencv.core.Core;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.AWTEventListener;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.util.concurrent.TimeUnit;
 
 public class MainAdmin extends JFrame{
     private JButton btClick;
