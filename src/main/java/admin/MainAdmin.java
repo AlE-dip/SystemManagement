@@ -1,20 +1,15 @@
-package admin.client;
+package admin;
 
 import core.Camera;
 import core.Screenshot;
 import org.opencv.core.Core;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.AWTEventListener;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.util.concurrent.TimeUnit;
 
 public class MainAdmin extends JFrame{
     private JButton btClick;
@@ -40,9 +35,9 @@ public class MainAdmin extends JFrame{
 //            Robot robot = new Robot();
 //            Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
             //Demo camera
-            //Camera.observer(socket, label);
+            Camera.observer(socket, label);
             //Demo screenshot
-            Screenshot.observer(socket, label);
+            //Screenshot.observer(socket, pn1, label);
 //            Thread thread = new Thread(new Runnable() {
 //                @Override
 //                public void run() {

@@ -37,7 +37,7 @@ public class Camera {
 //                            writer.write(imageInString);
 //                            writer.newLine();
 //                            writer.flush();
-                            Core.writeBuffer(frame, writer);
+                            Core.writeMatToBuffer(frame, writer);
                             TimeUnit.MICROSECONDS.sleep(500);
 
                         } catch (InterruptedException | IOException e) {
@@ -83,7 +83,7 @@ public class Camera {
 //
 //                            Mat frame = new Mat(rows, cols, types);
                             //frame.put(0,0, points);
-                            Mat image = Core.readBuffer(reader);
+                            Mat image = Core.readBufferToMat(reader);
 
                             label.setIcon(new ImageIcon(HighGui.toBufferedImage(image)));
                         } catch (IOException e) {
