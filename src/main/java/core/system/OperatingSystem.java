@@ -1,7 +1,10 @@
 package core.system;
 
+import oshi.software.os.NetworkParams;
 import oshi.software.os.OSProcess;
+import oshi.util.FormatUtil;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,9 +18,16 @@ public class OperatingSystem {
     public static final int system = 5;
     private ArrayList<Process> processes;
     private Map<Integer, OSProcess> oldOSProcess;
+    // os and hw panel
+    private String osPrefix;
+    private String upTime;
+
+
 
     public OperatingSystem() {
-        this.processes = null;
+        processes = null;
+        osPrefix = "";
+        upTime = "";
     }
 
     public OperatingSystem(oshi.software.os.OperatingSystem operatingSystem) {
@@ -27,6 +37,16 @@ public class OperatingSystem {
             processes.add(new Process(osProcess));
             oldOSProcess.put(osProcess.getProcessID(), osProcess);
         }
+        // os and hw panel
+        StringBuilder stringBuilder = new StringBuilder("Operating System: ");
+        stringBuilder.append(String.valueOf(operatingSystem));
+        stringBuilder.append("\n\n")
+                .append("Booted: ")
+                .append(Instant.ofEpochSecond(operatingSystem.getSystemBootTime()))
+                .append('\n')
+                .append("Uptime: ");
+        osPrefix = stringBuilder.toString();
+        upTime = FormatUtil.formatElapsedSecs(operatingSystem.getSystemUptime());
     }
 
     public void refresh(oshi.software.os.OperatingSystem operatingSystem){
@@ -41,6 +61,8 @@ public class OperatingSystem {
         }
         oldOSProcess.clear();
         oldOSProcess.putAll(osProcessMap);
+        // os and hw panel
+        upTime = FormatUtil.formatElapsedSecs(operatingSystem.getSystemUptime());
     }
 
     public void sort(int sortBy){
@@ -67,5 +89,21 @@ public class OperatingSystem {
 
     public void setProcesses(ArrayList<Process> processes) {
         this.processes = processes;
+    }
+
+    public String getOsPrefix() {
+        return osPrefix;
+    }
+
+    public void setOsPrefix(String osPrefix) {
+        this.osPrefix = osPrefix;
+    }
+
+    public String getUpTime() {
+        return upTime;
+    }
+
+    public void setUpTime(String upTime) {
+        this.upTime = upTime;
     }
 }

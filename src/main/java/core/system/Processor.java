@@ -7,12 +7,15 @@ public class Processor {
     private double ticks;
     private long[][] oldProcTicks;
     private double[] procTicks;
+    // os and hw panel
+    private String infoProcessor;
 
     public Processor() {
         this.oldTicks = null;
         ticks = 0;
         this.oldProcTicks = null;
         procTicks = null;
+        infoProcessor = "";
     }
 
     public Processor(CentralProcessor cpu){
@@ -20,6 +23,7 @@ public class Processor {
         ticks = 0;
         oldProcTicks = cpu.getProcessorCpuLoadTicks();
         procTicks = null;
+        infoProcessor = cpu.toString();
     }
 
     public void refresh(CentralProcessor cpu){
@@ -59,5 +63,13 @@ public class Processor {
 
     public void setOldProcTicks(long[][] oldProcTicks) {
         this.oldProcTicks = oldProcTicks;
+    }
+
+    public String getInfoProcessor() {
+        return infoProcessor;
+    }
+
+    public void setInfoProcessor(String infoProcessor) {
+        this.infoProcessor = infoProcessor;
     }
 }

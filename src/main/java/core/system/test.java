@@ -8,6 +8,7 @@ import oshi.hardware.GlobalMemory;
 import oshi.software.os.FileSystem;
 import oshi.software.os.OSProcess;
 
+import java.util.Base64;
 import java.util.List;
 
 public class test {
@@ -32,10 +33,12 @@ public class test {
 //        Process process3 = new Process(process);
 //        System.out.println(process.getProcessID() + " " + process.getName() + " " + process.getProcessCpuLoadCumulative());
 //        System.out.println(process2.getProcessID() + " " + process2.getName() + " " + process2.getProcessCpuLoadCumulative());
-        OperatingSystem operatingSystem = new OperatingSystem(systemInfo.getOperatingSystem());
-        Thread.sleep(4000);
-        operatingSystem.refresh(systemInfo.getOperatingSystem());
-        String str = mapper.writeValueAsString(operatingSystem);
+//        OperatingSystem operatingSystem = new OperatingSystem(systemInfo.getOperatingSystem());
+//        Thread.sleep(4000);
+//        operatingSystem.refresh(systemInfo.getOperatingSystem());
+ //       Display display = new Display(systemInfo.getHardware().getDisplays());
+        core.system.SystemInfo si = new core.system.SystemInfo(systemInfo);
+        String str = mapper.writeValueAsString(si);
         System.out.println(str);
         System.out.println("Start...");
         for (int i = 0; i < 2; i++){
@@ -43,18 +46,20 @@ public class test {
             Thread.sleep(1000);
         }
         //Memory memory2 = mapper.readerFor(Memory.class).readValue(str);
-        //Processor processor1 = mapper.readerFor(Processor.class).readValue(str);
+     //   Processor processor1 = mapper.readerFor(Processor.class).readValue(str);
         //core.system.FileSystem fileSystem2 = mapper.readerFor(core.system.FileSystem.class).readValue(str);
 
-//        Process process4 = mapper.readerFor(Process.class).readValue(str);
+       // Process process4 = mapper.readerFor(Process.class).readValue(str);
 //        String str2 = mapper.writeValueAsString(process4);
 //        System.out.println(process.getProcessID() + " " + process.getName() + " " + process.getProcessCpuLoadCumulative());
 //        System.out.println(process2.getProcessID() + " " + process2.getName() + " " + process2.getProcessCpuLoadCumulative());
-        OperatingSystem operatingSystem1 = mapper.readerFor(OperatingSystem.class).readValue(str);
-        operatingSystem1.sort(OperatingSystem.sortByCumulative);
-        for(Process process: operatingSystem1.getProcesses()){
-            System.out.println(mapper.writeValueAsString(process));
-        }
-        System.out.println(operatingSystem1);
+//        OperatingSystem operatingSystem1 = mapper.readerFor(OperatingSystem.class).readValue(str);
+//        operatingSystem1.sort(OperatingSystem.sortByCumulative);
+//        for(Process process: operatingSystem1.getProcesses()){
+//            System.out.println(mapper.writeValueAsString(process));
+//        }
+       // Display display1 = mapper.readerFor(Display.class).readValue(str);
+        core.system.SystemInfo si1 = mapper.readerFor(core.system.SystemInfo.class).readValue(str);
+        System.out.println(str.length() + "");
     }
 }

@@ -1,5 +1,8 @@
 package core;
 
+import com.sun.jna.platform.win32.GDI32Util;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.Size;
@@ -17,20 +20,27 @@ import java.util.concurrent.TimeUnit;
 
 public class Screenshot {
     public static boolean run = false;
-    private static BufferedImage image;
 
     public static BufferedImage capture() throws AWTException {
-            Robot robot = new Robot();
-            Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
-            BufferedImage screenFullImage = robot.createScreenCapture(screenRect);
-            return screenFullImage;
+        Robot robot = new Robot();
+        Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+        BufferedImage screenFullImage = robot.createScreenCapture(screenRect);
+        return screenFullImage;
     }
 
     public static void record(Socket socket) throws AWTException, IOException {
         run = true;
-        Robot robot = new Robot();
-        Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
-        image = robot.createScreenCapture(screenRect);
+        User32 user32 = User32.INSTANCE;
+        //Get desktop windows handler
+        WinDef.HWND hwnd = user32.GetDesktopWindow();
+        //Create a BufferedImage
+        BufferedImage screenshot = GDI32Util.getScreenshot(hwnd);
+        //File file = new File("screenshot.png");
+        //Save screenshot to a file
+        //ImageIO.write(image, "png", file);
+//        Robot robot = new Robot();
+//        Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+//        image = robot.createScreenCapture(screenRect);
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
         Thread thread = new Thread(new Runnable() {
@@ -39,16 +49,13 @@ public class Screenshot {
                 System.out.println("Record start...");
                 int i = 0;
                 while (run){
-                    BufferedImage screenshot = robot.createScreenCapture(screenRect);
+                    BufferedImage screenshot = GDI32Util.getScreenshot(hwnd);
                     try {
                         paintCursor(screenshot);
 
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        ImageIO.write(screenshot, "png", baos);
-                        baos.flush();
-
-                        Mat mat = Imgcodecs.imdecode(new MatOfByte(baos.toByteArray()), Imgcodecs.IMREAD_UNCHANGED);
-                        Core.writeBuffer(mat, writer);
+                        Mat mat = Core.bufferedImageToMat(screenshot);
+                        //Imgproc.resize(mat, mat, new Size(900, 400));
+                        Core.writeMatToBuffer(mat, writer);
 
                         TimeUnit.MICROSECONDS.sleep(10);
                     } catch (IOException | InterruptedException e) {
@@ -69,9 +76,10 @@ public class Screenshot {
         thread.start();
     }
 
-    public static void observer(Socket socket, JLabel label) throws IOException {
+    public static void observer(Socket socket, JPanel panel, JLabel label) throws IOException {
         run = true;
         BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        File file = new File("screenshot.png");
 
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -81,11 +89,16 @@ public class Screenshot {
                 while (run){
                     try {
 
-                        Mat mat = Core.readBuffer(reader);
-                        Image screenshot = HighGui.toBufferedImage(mat);
+                        Mat mat = Core.readBufferToMat(reader);
+                        BufferedImage screenshot = (BufferedImage) HighGui.toBufferedImage(mat);
 
-                        ImageIcon icon = scaleImage(new ImageIcon(screenshot), label.getWidth(), label.getHeight());
-                        label.setIcon(icon);
+                        Graphics2D graphics2D = screenshot.createGraphics();
+                        //panel.paint(graphics2D);
+
+                        //ImageIcon icon = scaleImage(new ImageIcon(screenshot), label.getWidth(), label.getHeight());
+                        screenshot = Core.resize(screenshot, 900, 600);
+                        label.setIcon(new ImageIcon(screenshot));
+//                        label.setIcon(icon);
 
                     } catch (IOException e) {
                         System.out.println("Screenshot.observer stop!");
@@ -107,10 +120,17 @@ public class Screenshot {
 
     public static void paintCursor(BufferedImage image) throws IOException {
         Image cursor = ImageIO.read(new File("image\\cursor.png"));
-        int x = MouseInfo.getPointerInfo().getLocation().x;
-        int y = MouseInfo.getPointerInfo().getLocation().y;
+        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = dimension.width;
+        int height = dimension.height;
+        double x = MouseInfo.getPointerInfo().getLocation().x;
+        double y = MouseInfo.getPointerInfo().getLocation().y;
+        double cx = x / width;
+        double cy = y / height;
         Graphics2D graphics2D = image.createGraphics();
-        graphics2D.drawImage(cursor, x, y, 16, 16, null);
+        int w = image.getWidth();
+        int h = image.getHeight();
+        graphics2D.drawImage(cursor, (int)(cx * w), (int)(cy * h), 16, 16, null);
     }
 
     public static ImageIcon scaleImage(ImageIcon icon, int w, int h)
