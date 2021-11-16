@@ -28,11 +28,7 @@ import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import java.awt.BorderLayout;
 import java.awt.Container;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 
 import oshi.SystemInfo;
 import oshi.demo.gui.Config;

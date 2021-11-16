@@ -3,13 +3,6 @@ package core.system;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import oshi.SystemInfo;
-import oshi.hardware.CentralProcessor;
-import oshi.hardware.GlobalMemory;
-import oshi.software.os.FileSystem;
-import oshi.software.os.OSProcess;
-
-import java.util.Base64;
-import java.util.List;
 
 public class test {
     public static void main(String[] args) throws InterruptedException, JsonProcessingException {

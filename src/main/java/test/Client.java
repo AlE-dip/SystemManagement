@@ -1,5 +1,8 @@
 package test;
 
+
+import org.jfree.data.json.impl.JSONObject;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
@@ -20,6 +23,7 @@ public class Client {
                 String number = reader.readLine();
                 System.out.println(number);
             }
+            JSONObject obj = new JSONObject("d");
         } catch (IOException e) {
             e.printStackTrace();
         }

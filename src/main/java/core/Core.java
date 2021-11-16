@@ -16,6 +16,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Core {
+
+    public static void writeString(BufferedWriter writer, String string) throws IOException {
+        writer.write(string);
+        writer.newLine();
+        writer.flush();
+    }
+
     public static void writeMatToBuffer(Mat image, BufferedWriter writer) throws IOException {
         byte[] points = new byte[(int) (image.total() * image.channels())];
         image.get(0, 0, points);
