@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import server.Server;
 
+import javax.swing.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -69,18 +70,20 @@ public class Session extends Thread{
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     public void closeSocket() throws IOException {
         if(skSystemInfo != null && !skSystemInfo.isClosed()){
             skSystemInfo.close();
+            skSystemInfo = null;
         }
         if(skEvent != null && !skEvent.isClosed()){
             skEvent.close();
+            skEvent = null;
         }
         if(skImage != null && !skImage.isClosed()){
             skImage.close();
+            skImage = null;
         }
     }
 

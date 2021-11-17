@@ -18,29 +18,16 @@ import java.util.Map;
 
 public class ServerSession extends Session {
 
-    ServerSocket serverSocket;
     int port;
 
     public ServerSession(Socket skConnect) throws IOException {
         super(skConnect);
-        //Stay connect
-        serverSocket = new ServerSocket(0);
-        port = serverSocket.getLocalPort();
-        //read socket
-        String role = readerConnect.readLine();
-        if(role.equals(UtilContent.client)){
-            this.role = UtilContent.client;
-            System.out.println("Client connecting...");
-        }else {
-            this.role = UtilContent.admin;
-            System.out.println("Admin connecting...");
-        }
+        //send id
+        Core.writeString(writerConnect, getId() + "");
     }
 
     public void createConnectSystemInfo() throws IOException {
-        sendRequest(UtilContent.createConnectSystemInfo, port);
-        skSystemInfo = serverSocket.accept();
-        createBufferedSystemInfo();
+        sendRequest(UtilContent.createConnectSystemInfo);
     }
 
     public void reset(){
@@ -53,21 +40,6 @@ public class ServerSession extends Session {
 
     public void sendRequest(String stringAction){
         try {
-            Action action = new Action();
-            action.setAction(stringAction);
-            stringAction = new ObjectMapper().writeValueAsString(action);
-            Core.writeString(writerConnect, stringAction);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void sendRequest(String stringAction, int port){
-        try {
-            Action action = new Action();
-            action.setAction(stringAction);
-            action.setPort(port);
-            stringAction = new ObjectMapper().writeValueAsString(action);
             Core.writeString(writerConnect, stringAction);
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,22 +49,32 @@ public class ServerSession extends Session {
     @Override
     public void run() {
         super.run();
-        try {
-            if(role.equals(UtilContent.admin)) {
-                createConnectSystemInfo();
+        while (true){
+            try {
+                String stringAction = readerConnect.readLine();
+                Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
+                switch (action.getAction()){
+                    case UtilContent.disconnect: {
+                        System.out.println("Disconnect " + role + "!");
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Disconnect " + role + "... error!");
+                Server.forwarder.threadSystemInfo.interrupt();
+                if (role.equals(UtilContent.admin)){
+                    Server.forwarder.disconnectWithAdmin();
+                }else {
+                    Server.forwarder.disconnectWithClient(getId());
+                }
+
+                break;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
     @Override
     public void interrupt() {
         super.interrupt();
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

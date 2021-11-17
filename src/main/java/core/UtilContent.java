@@ -7,6 +7,7 @@ public class UtilContent {
     public static final String systemForwardReady = "systemForwardReady";
     public static String systemReceiveReady = "systemReceiveReady";
     public static final String stop = "stop";
+    public static final String disconnect = "disconnect";
     public static final String stopSystemInfo = "stopSystemInfo";
     public static final String continues = "continues";
     public static final String firstClient = "firstClient";
@@ -15,4 +16,5 @@ public class UtilContent {
     public static final String address = "localhost";
     public static final int port = 50000;
     public static final int newSocket = 1;
+    public static final String newClient = "newClient";
 }

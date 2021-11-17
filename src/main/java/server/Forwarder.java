@@ -6,6 +6,7 @@ import core.Core;
 import core.Session;
 import core.SystemSR;
 import core.UtilContent;
+import core.model.Action;
 import core.model.ClientInfo;
 import core.model.Clients;
 
@@ -17,10 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Forwarder {
-    private String systemReceiveReady = "";
+    private String systemInfoReceiveReady = "";
     private Map<Long, ServerSession> mapWork;
     private ServerSession clientServer;
     private ServerSession adminServer;
+    public Thread threadSystemInfo;
 
     public Forwarder() {
         adminServer = null;
@@ -28,15 +30,26 @@ public class Forwarder {
         mapWork = new HashMap<>();
     }
 
-    public void startWithFirstClientOrNon() throws IOException {
+    public void createConnectSystemInfo() throws IOException {
         //Start admin
         adminServer.createConnectSystemInfo();
-        systemReceiveReady = adminServer.getReaderSystemInfo().readLine();
         clientServer = firstOrNonClient();
         if(clientServer != null){
             clientServer.createConnectSystemInfo();
-            forwardSystemInfo();
         }
+    }
+
+    public void runSystemInfo() throws IOException {
+        if(adminServer == null || clientServer == null || adminServer.getSkSystemInfo() == null || clientServer.getSkSystemInfo() == null){
+            return;
+        }
+        if(systemInfoReceiveReady == ""){
+            systemInfoReceiveReady = adminServer.getReaderSystemInfo().readLine();
+        }
+        Action action = new Action(UtilContent.newClient, clientServer.getId());
+        String stringAction = new ObjectMapper().writeValueAsString(action);
+        Core.writeString(adminServer.getWriterConnect(), stringAction);
+        forwardSystemInfo();
     }
 
     public ServerSession firstOrNonClient(){
@@ -49,10 +62,9 @@ public class Forwarder {
         }
     }
 
-    public void continueWithThisClient(ServerSession clientServer) throws IOException {
+    public void createConnectSystemInfoWithThisClient(ServerSession clientServer) throws IOException {
         this.clientServer = clientServer;
         clientServer.createConnectSystemInfo();
-        forwardSystemInfo();
     }
 
     public void forwardSystemInfo() throws IOException {
@@ -61,7 +73,7 @@ public class Forwarder {
         BufferedWriter writerClient = clientServer.getWriterSystemInfo();
         BufferedReader readerClient = clientServer.getReaderSystemInfo();
         ObjectMapper mapper = new ObjectMapper();
-        Thread thread = new Thread(new Runnable() {
+        threadSystemInfo = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true){
@@ -70,7 +82,7 @@ public class Forwarder {
                         dataSystem = readerClient.readLine();
                     } catch (IOException e){
                         e.printStackTrace();
-                        disconnectWithClientAndStartWithClientDefault();
+                        System.out.println("SystemInfo stop!");
                         break;
                     }
                     System.out.println(dataSystem);
@@ -80,25 +92,23 @@ public class Forwarder {
                         feedback = readerAdmin.readLine();
                     } catch (IOException e){
                         e.printStackTrace();
-                        disconnectWithAdmin();
+                        System.out.println("SystemInfo stop!");
                         break;
                     }
                     try {
                         if(feedback.equals(UtilContent.continues)){
                             Core.writeString(writerClient, UtilContent.continues);
-                        }else {
-                            Core.writeString(writerClient, UtilContent.stop);
                         }
                     } catch (IOException e){
                         e.printStackTrace();
-                        disconnectWithClientAndStartWithClientDefault();
+                        System.out.println("SystemInfo stop!");
                         break;
                     }
                 }
             }
         });
-        if(systemReceiveReady.equals(UtilContent.systemReceiveReady)){
-            thread.start();
+        if(systemInfoReceiveReady.equals(UtilContent.systemReceiveReady)){
+            threadSystemInfo.start();
             Core.writeString(writerClient, UtilContent.systemForwardReady);
         }
     }
@@ -106,31 +116,26 @@ public class Forwarder {
     public void disconnectWithAdmin(){
         adminServer.interrupt();
         adminServer = null;
-        try {
-            Core.writeString(clientServer.getWriterSystemInfo(), UtilContent.stopSystemInfo);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        clientServer.sendRequest(UtilContent.reset);
-        clientServer.reset();
-        System.out.println("Disconnect admin!!!");
-        System.out.println("Reset client.");
-    }
-
-    public void disconnectWithClientAndStartWithClientDefault(){
-        mapWork.remove(clientServer.getId());
-        clientServer.interrupt();
-        clientServer = firstOrNonClient();
-        System.out.println("Disconnect client!!!");
+        systemInfoReceiveReady = "";
         if(clientServer != null){
             try {
-                clientServer.createConnectSystemInfo();
-                forwardSystemInfo();
-                System.out.println("Start default client.");
+                Core.writeString(clientServer.getWriterSystemInfo(), UtilContent.stopSystemInfo);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            clientServer.sendRequest(UtilContent.reset);
+            clientServer.reset();
+            clientServer = null;
+            System.out.println("Reset client.");
         }
+        System.out.println("Disconnect admin!!!");
+    }
+
+    public void disconnectWithClient(long id){
+        mapWork.remove(id);
+        clientServer.interrupt();
+        clientServer = null;
+        System.out.println("Disconnect client!!!");
         System.out.println("Wait while clients connect...");
     }
 

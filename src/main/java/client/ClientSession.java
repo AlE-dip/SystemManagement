@@ -16,15 +16,20 @@ import java.net.Socket;
 
 public class ClientSession extends Session {
     private Thread threadSystemInfo;
+    private String id;
 
     public ClientSession(Socket skConnect) throws IOException {
         super(skConnect);
         Core.writeString(writerConnect, UtilContent.client);
+        id = readerConnect.readLine();
     }
 
-    public void createConnectSystemInfo(int port) throws IOException {
-        skSystemInfo = new Socket(UtilContent.address, port);
+    public void createConnectSystemInfo() throws IOException {
+        skSystemInfo = new Socket(UtilContent.address, UtilContent.port);
         createBufferedSystemInfo();
+        Action action = new Action(UtilContent.createConnectSystemInfo, id);
+        String stringAction = new ObjectMapper().writeValueAsString(action);
+        Core.writeString(writerSystemInfo, stringAction);
         sendSystemInfo(writerSystemInfo, readerSystemInfo);
     }
 
@@ -42,14 +47,12 @@ public class ClientSession extends Session {
                         Core.writeString(writer, dataSystem);
 
                         String feedback = reader.readLine();
-                        if(feedback.equals(UtilContent.stopSystemInfo)){
-                            System.out.println("Wait...");
-                            break;
-                        }else if (feedback.equals(UtilContent.continues)){
+                        if (feedback.equals(UtilContent.continues)){
                             Thread.sleep(1000);
                         }
                     } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
+                        System.out.println("SystemInfo stopped.");
                         break;
                     }
                 }
@@ -65,21 +68,24 @@ public class ClientSession extends Session {
     @Override
     public void run() {
         super.run();
+        System.out.println("Client start...");
         try {
             while (true){
                 String stringAction = readerConnect.readLine();
-                Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
-                switch (action.getAction()){
-                    case UtilContent.reset: {
-                        threadSystemInfo.interrupt();
-                        closeSocket();
-                        break;
-                    }
-                    case UtilContent.createConnectSystemInfo: {
-                        createConnectSystemInfo(action.getPort());
-                        break;
-                    }
+                if(stringAction.equals(UtilContent.createConnectSystemInfo)){
+                    createConnectSystemInfo();
+                    System.out.println("SystemInfo running...");
+                } else if (stringAction.equals(UtilContent.reset)) {
+                    threadSystemInfo.interrupt();
+                    closeSocket();
+                    System.out.println("Wait...");
+                } else {
+//                    Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
+//                    switch (action.getAction()){
+//
+//                    }
                 }
+
             }
 
         } catch (IOException e) {

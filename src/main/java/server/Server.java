@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import core.Core;
 import core.UtilContent;
 import core.Session;
+import core.model.Action;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -15,8 +16,10 @@ import java.util.Map;
 
 public class Server {
 
+    public static Forwarder forwarder;
+
     public Server() throws IOException {
-        Forwarder forwarder = new Forwarder();
+        forwarder = new Forwarder();
         ServerSocket serverSocket = new ServerSocket();
         SocketAddress http = new InetSocketAddress(UtilContent.port);
         serverSocket.bind(http);
@@ -24,20 +27,62 @@ public class Server {
         while (true){
             try {
                 Socket socket = serverSocket.accept();
-                ServerSession session = new ServerSession(socket);
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                if(session.getRole().equals(UtilContent.admin)){
+                String stringAction = reader.readLine();
+                if(stringAction.equals(UtilContent.admin)){
+                    ServerSession session = new ServerSession(socket);
+                    session.setWriterConnect(writer);
+                    session.setReaderConnect(reader);
+                    session.setRole(UtilContent.admin);
+                    session.start();
+                    System.out.println("Admin connecting...");
                     forwarder.setAdminServer(session);
-                    forwarder.startWithFirstClientOrNon();
-                }else if (session.getRole().equals(UtilContent.client)){
+                    forwarder.createConnectSystemInfo();
+                }else if (stringAction.equals(UtilContent.client)){
+                    ServerSession session = new ServerSession(socket);
+                    session.setWriterConnect(writer);
+                    session.setReaderConnect(reader);
+                    session.setRole(UtilContent.client);
+                    session.start();
+                    System.out.println("Client connecting...");
                     forwarder.getMapWork().put(session.getId(), session);
                     if(forwarder.getAdminServer() != null && forwarder.getClientServer() == null){
-                        forwarder.continueWithThisClient(session);
+                        forwarder.createConnectSystemInfoWithThisClient(session);
+                    }
+                }else {
+                    Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
+                    if(forwarder.getAdminServer().getId() == Long.parseLong((String) action.getData())){
+                        setSocketAndRun(socket, writer, reader, forwarder.getAdminServer(), action.getAction());
+                    }else {
+                        for (ServerSession session: forwarder.getMapWork().values()){
+                            if(session.getId() == Long.parseLong((String) action.getData())){
+                                setSocketAndRun(socket, writer, reader, session, action.getAction());
+                                break;
+                            }
+                        }
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 System.out.println("Can not create connection!");
+            }
+        }
+    }
+
+    public void createServerSession(ServerSession session){
+
+    }
+
+    private void setSocketAndRun(Socket socket, BufferedWriter writer, BufferedReader reader, ServerSession serverSession,
+                                 String action) throws IOException {
+        switch (action){
+            case UtilContent.createConnectSystemInfo: {
+                serverSession.setSkSystemInfo(socket);
+                serverSession.setWriterSystemInfo(writer);
+                serverSession.setReaderSystemInfo(reader);
+                forwarder.runSystemInfo();
             }
         }
     }

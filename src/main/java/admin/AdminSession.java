@@ -17,15 +17,20 @@ import java.net.Socket;
 
 public class AdminSession extends Session {
     private Thread threadSystemInfo;
+    private String id;
 
     public AdminSession(Socket skConnect) throws IOException {
         super(skConnect);
         Core.writeString(writerConnect, UtilContent.admin);
+        id = readerConnect.readLine();
     }
 
-    public void createConnectSystemInfo(int port) throws IOException {
-        skSystemInfo = new Socket(UtilContent.address, port);
+    public void createConnectSystemInfo() throws IOException {
+        skSystemInfo = new Socket(UtilContent.address, UtilContent.port);
         createBufferedSystemInfo();
+        Action action = new Action(UtilContent.createConnectSystemInfo, id);
+        String stringAction = new ObjectMapper().writeValueAsString(action);
+        Core.writeString(writerSystemInfo, stringAction);
         receiveSystemInfo(writerSystemInfo, readerSystemInfo);
         Core.writeString(writerSystemInfo, UtilContent.systemReceiveReady);
     }
@@ -68,23 +73,22 @@ public class AdminSession extends Session {
     @Override
     public void run() {
         super.run();
+        System.out.println("Admin start...");
         try {
             while (true){
                 String stringAction = readerConnect.readLine();
-                Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
-                switch (action.getAction()){
-                    case UtilContent.reset: {
-                        threadSystemInfo.interrupt();
-                        closeSocket();
-                        break;
-                    }
-                    case UtilContent.createConnectSystemInfo: {
-                        createConnectSystemInfo(action.getPort());
-                        break;
+                if(stringAction.equals(UtilContent.createConnectSystemInfo)){
+                    createConnectSystemInfo();
+                    System.out.println("SystemInfo running...");
+                } else {
+                    Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
+                    switch (action.getAction()){
+                        case UtilContent.newClient: {
+                            System.out.println("New client: " + action.getData());
+                        }
                     }
                 }
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }

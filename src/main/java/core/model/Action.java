@@ -2,16 +2,16 @@ package core.model;
 
 public class Action {
     private String action;
-    private int port;
+    private Object data;
 
     public Action() {
         this.action = "";
-        this.port = 0;
+        this.data = 0;
     }
 
-    public Action(String action, int port) {
+    public Action(String action, Object data) {
         this.action = action;
-        this.port = port;
+        this.data = data;
     }
 
     public String getAction() {
@@ -22,11 +22,11 @@ public class Action {
         this.action = action;
     }
 
-    public int getPort() {
-        return port;
+    public Object getData() {
+        return data;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    public void setData(Object data) {
+        this.data = data;
     }
 }

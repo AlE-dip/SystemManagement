@@ -23,7 +23,6 @@ public class Client {
                 String number = reader.readLine();
                 System.out.println(number);
             }
-            JSONObject obj = new JSONObject("d");
         } catch (IOException e) {
             e.printStackTrace();
         }
