@@ -23,6 +23,8 @@ public class Core {
         writer.flush();
     }
 
+
+
     public static void writeMatToBuffer(Mat image, BufferedWriter writer) throws IOException {
         byte[] points = new byte[(int) (image.total() * image.channels())];
         image.get(0, 0, points);

@@ -82,12 +82,12 @@ public class MainClient extends JFrame{
                     Socket socket = new Socket("localhost", 50000);
 
                     //demo camera
-                    Camera.start(socket);
+                    //Camera.start(socket);
 
                     //demo screenshot
-                    //Screenshot.record(socket);
+                    Screenshot.record(socket);
 
-                } catch (IOException /*| AWTException*/ ex) {
+                } catch (IOException | AWTException /*| AWTException*/ ex) {
                     ex.printStackTrace();
                 }
             }

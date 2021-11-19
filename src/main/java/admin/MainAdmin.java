@@ -35,9 +35,9 @@ public class MainAdmin extends JFrame{
 //            Robot robot = new Robot();
 //            Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
             //Demo camera
-            Camera.observer(socket, label);
+            //Camera.observer(socket, label);
             //Demo screenshot
-            //Screenshot.observer(socket, pn1, label);
+            Screenshot.observer(socket, pn1, label);
 //            Thread thread = new Thread(new Runnable() {
 //                @Override
 //                public void run() {

@@ -1,6 +1,9 @@
 package admin;
 
+import admin.gui.OshiGui;
 import core.UtilContent;
+import org.opencv.core.Core;
+
 import java.io.IOException;
 import java.net.Socket;
 
@@ -17,6 +20,8 @@ public class Admin {
     }
 
     public static void main(String[] args) {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
         Admin admin = new Admin();
     }
 }

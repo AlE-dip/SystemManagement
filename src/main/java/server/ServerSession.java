@@ -30,12 +30,8 @@ public class ServerSession extends Session {
         sendRequest(UtilContent.createConnectSystemInfo);
     }
 
-    public void reset(){
-        try {
-            closeSocket();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void createConnectCamera() throws IOException {
+        sendRequest(UtilContent.createConnectCamera);
     }
 
     public void sendRequest(String stringAction){
@@ -52,10 +48,14 @@ public class ServerSession extends Session {
         while (true){
             try {
                 String stringAction = readerConnect.readLine();
-                Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
-                switch (action.getAction()){
-                    case UtilContent.disconnect: {
-                        System.out.println("Disconnect " + role + "!");
+                if(stringAction.equals(UtilContent.stopCamera)){
+                    Server.forwarder.resetCamera();
+                }else {
+                    Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
+                    switch (action.getAction()) {
+                        case UtilContent.disconnect: {
+                            System.out.println("Disconnect " + role + "!");
+                        }
                     }
                 }
             } catch (IOException e) {

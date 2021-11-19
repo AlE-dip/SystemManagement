@@ -26,7 +26,9 @@
           <component id="b4d1d" class="javax.swing.JLabel" binding="label">
             <constraints border-constraint="Center"/>
             <properties>
-              <text value="Label"/>
+              <horizontalAlignment value="0"/>
+              <horizontalTextPosition value="0"/>
+              <text value=""/>
             </properties>
           </component>
         </children>

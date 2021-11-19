@@ -71,10 +71,6 @@ public class Server {
         }
     }
 
-    public void createServerSession(ServerSession session){
-
-    }
-
     private void setSocketAndRun(Socket socket, BufferedWriter writer, BufferedReader reader, ServerSession serverSession,
                                  String action) throws IOException {
         switch (action){
@@ -83,6 +79,15 @@ public class Server {
                 serverSession.setWriterSystemInfo(writer);
                 serverSession.setReaderSystemInfo(reader);
                 forwarder.runSystemInfo();
+                break;
+            }
+            case UtilContent.createConnectCamera: {
+                serverSession.setSkCamera(socket);
+                serverSession.setWriterCamera(writer);
+                serverSession.setReaderCamera(reader);
+                forwarder.createConnectCamera();
+                forwarder.runCamera();
+                break;
             }
         }
     }

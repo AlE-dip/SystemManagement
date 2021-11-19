@@ -9,18 +9,23 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class Session extends Thread{
+public class Session extends Thread {
     protected String role;
     protected Socket skConnect;
     protected Socket skSystemInfo;
     protected Socket skImage;
     protected Socket skEvent;
+    protected Socket skCamera;
     protected BufferedReader readerConnect;
     protected BufferedWriter writerConnect;
     protected BufferedReader readerSystemInfo;
     protected BufferedWriter writerSystemInfo;
     protected BufferedReader readerEvent;
     protected BufferedWriter writerEvent;
+    protected BufferedReader readerImage;
+    protected BufferedWriter writerImage;
+    protected BufferedReader readerCamera;
+    protected BufferedWriter writerCamera;
 
     public Session(Socket skConnect) throws IOException {
         this.skConnect = skConnect;
@@ -61,6 +66,11 @@ public class Session extends Thread{
         writerSystemInfo = new BufferedWriter(new OutputStreamWriter(skSystemInfo.getOutputStream()));
     }
 
+    public void createBufferedCamera() throws IOException {
+        readerCamera = new BufferedReader(new InputStreamReader(skCamera.getInputStream()));
+        writerCamera = new BufferedWriter(new OutputStreamWriter(skCamera.getOutputStream()));
+    }
+
     @Override
     public void interrupt() {
         super.interrupt();
@@ -72,18 +82,52 @@ public class Session extends Thread{
         }
     }
 
-    public void closeSocket() throws IOException {
-        if(skSystemInfo != null && !skSystemInfo.isClosed()){
-            skSystemInfo.close();
-            skSystemInfo = null;
+    public void closeSocket() {
+        try {
+            if (skSystemInfo != null && !skSystemInfo.isClosed()) {
+                skSystemInfo.close();
+                skSystemInfo = null;
+            }
+            if (skEvent != null && !skEvent.isClosed()) {
+                skEvent.close();
+                skEvent = null;
+            }
+            if (skImage != null && !skImage.isClosed()) {
+                skImage.close();
+                skImage = null;
+            }
+            if (skCamera != null && !skCamera.isClosed()) {
+                skCamera.close();
+                skCamera = null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        if(skEvent != null && !skEvent.isClosed()){
+    }
+
+    public void reset() throws IOException {
+        if (skEvent != null && !skEvent.isClosed()) {
             skEvent.close();
             skEvent = null;
         }
-        if(skImage != null && !skImage.isClosed()){
+        if (skImage != null && !skImage.isClosed()) {
             skImage.close();
             skImage = null;
+        }
+        if (skCamera != null && !skCamera.isClosed()) {
+            skCamera.close();
+            skCamera = null;
+        }
+    }
+
+    public void resetCamera() {
+        try {
+            if (skCamera != null && !skCamera.isClosed()) {
+                skCamera.close();
+                skCamera = null;
+            }
+        }catch (IOException e){
+            e.printStackTrace();
         }
     }
 
@@ -173,5 +217,45 @@ public class Session extends Thread{
 
     public void setWriterEvent(BufferedWriter writerEvent) {
         this.writerEvent = writerEvent;
+    }
+
+    public Socket getSkCamera() {
+        return skCamera;
+    }
+
+    public void setSkCamera(Socket skCamera) {
+        this.skCamera = skCamera;
+    }
+
+    public BufferedReader getReaderImage() {
+        return readerImage;
+    }
+
+    public void setReaderImage(BufferedReader readerImage) {
+        this.readerImage = readerImage;
+    }
+
+    public BufferedWriter getWriterImage() {
+        return writerImage;
+    }
+
+    public void setWriterImage(BufferedWriter writerImage) {
+        this.writerImage = writerImage;
+    }
+
+    public BufferedReader getReaderCamera() {
+        return readerCamera;
+    }
+
+    public void setReaderCamera(BufferedReader readerCamera) {
+        this.readerCamera = readerCamera;
+    }
+
+    public BufferedWriter getWriterCamera() {
+        return writerCamera;
+    }
+
+    public void setWriterCamera(BufferedWriter writerCamera) {
+        this.writerCamera = writerCamera;
     }
 }

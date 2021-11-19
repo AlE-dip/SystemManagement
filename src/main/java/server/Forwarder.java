@@ -34,30 +34,47 @@ public class Forwarder {
         //Start admin
         adminServer.createConnectSystemInfo();
         clientServer = firstOrNonClient();
-        if(clientServer != null){
+        if (clientServer != null) {
             clientServer.createConnectSystemInfo();
         }
     }
 
+    public void createConnectCamera() throws IOException {
+        if(clientServer.getSkCamera() == null){
+            clientServer.createConnectCamera();
+        }
+    }
+
     public void runSystemInfo() throws IOException {
-        if(adminServer == null || clientServer == null || adminServer.getSkSystemInfo() == null || clientServer.getSkSystemInfo() == null){
+        if (adminServer == null || clientServer == null || adminServer.getSkSystemInfo() == null || clientServer.getSkSystemInfo() == null) {
             return;
         }
-        if(systemInfoReceiveReady == ""){
+        if (systemInfoReceiveReady == "") {
             systemInfoReceiveReady = adminServer.getReaderSystemInfo().readLine();
         }
         Action action = new Action(UtilContent.newClient, clientServer.getId());
         String stringAction = new ObjectMapper().writeValueAsString(action);
         Core.writeString(adminServer.getWriterConnect(), stringAction);
-        forwardSystemInfo();
+        if (systemInfoReceiveReady.equals(UtilContent.systemReceiveReady)) {
+            forwardSystemInfo(adminServer.getWriterSystemInfo(), adminServer.getReaderSystemInfo(),
+                    clientServer.getWriterSystemInfo(), clientServer.getReaderSystemInfo());
+            Core.writeString(clientServer.getWriterSystemInfo(), UtilContent.systemForwardReady);
+        }
     }
 
-    public ServerSession firstOrNonClient(){
-        if(!mapWork.isEmpty()) {
+    public void runCamera() throws IOException {
+        if (adminServer == null || clientServer == null || adminServer.getSkSystemInfo() == null || clientServer.getSkSystemInfo() == null) {
+            return;
+        }
+        forwardUtil(adminServer.getWriterCamera(), clientServer.getReaderCamera(), "Camera");
+    }
+
+    public ServerSession firstOrNonClient() {
+        if (!mapWork.isEmpty()) {
             Map.Entry<Long, ServerSession> entry = mapWork.entrySet().iterator().next();
             clientServer = entry.getValue();
             return clientServer;
-        }else {
+        } else {
             return null;
         }
     }
@@ -67,39 +84,35 @@ public class Forwarder {
         clientServer.createConnectSystemInfo();
     }
 
-    public void forwardSystemInfo() throws IOException {
-        BufferedWriter writerAdmin = adminServer.getWriterSystemInfo();
-        BufferedReader readerAdmin = adminServer.getReaderSystemInfo();
-        BufferedWriter writerClient = clientServer.getWriterSystemInfo();
-        BufferedReader readerClient = clientServer.getReaderSystemInfo();
-        ObjectMapper mapper = new ObjectMapper();
+    public void forwardSystemInfo(BufferedWriter writerAdmin, BufferedReader readerAdmin, BufferedWriter writerClient,
+                                  BufferedReader readerClient) throws IOException {
         threadSystemInfo = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true){
+                while (true) {
                     String dataSystem = "";
                     try {
                         dataSystem = readerClient.readLine();
-                    } catch (IOException e){
+                    } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println("SystemInfo stop!");
                         break;
                     }
-                    System.out.println(dataSystem);
+                    System.out.println(dataSystem.length());
                     String feedback = "";
                     try {
                         Core.writeString(writerAdmin, dataSystem);
                         feedback = readerAdmin.readLine();
-                    } catch (IOException e){
+                    } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println("SystemInfo stop!");
                         break;
                     }
                     try {
-                        if(feedback.equals(UtilContent.continues)){
+                        if (feedback.equals(UtilContent.continues)) {
                             Core.writeString(writerClient, UtilContent.continues);
                         }
-                    } catch (IOException e){
+                    } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println("SystemInfo stop!");
                         break;
@@ -107,36 +120,77 @@ public class Forwarder {
                 }
             }
         });
-        if(systemInfoReceiveReady.equals(UtilContent.systemReceiveReady)){
-            threadSystemInfo.start();
-            Core.writeString(writerClient, UtilContent.systemForwardReady);
-        }
+        threadSystemInfo.start();
     }
 
-    public void disconnectWithAdmin(){
+    public void forwardUtil(BufferedWriter writerAdmin, BufferedReader readerClient, String type) throws IOException {
+        threadSystemInfo = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    String dataSystem = "";
+                    try {
+                        dataSystem = readerClient.readLine();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println(type + " stop!");
+                        break;
+                    }
+                    System.out.println(dataSystem.length());
+                    try {
+                        Core.writeString(writerAdmin, dataSystem);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println(type + "stop!");
+                        return;
+                    }
+                }
+            }
+        });
+        threadSystemInfo.start();
+    }
+
+    public void resetCamera(){
+        clientServer.sendRequest(UtilContent.stopCamera);
+        clientServer.resetCamera();
+        adminServer.resetCamera();
+
+    }
+
+    public void disconnectWithAdmin() {
         adminServer.interrupt();
         adminServer = null;
         systemInfoReceiveReady = "";
-        if(clientServer != null){
+        if (clientServer != null) {
             try {
                 Core.writeString(clientServer.getWriterSystemInfo(), UtilContent.stopSystemInfo);
             } catch (IOException e) {
                 e.printStackTrace();
             }
             clientServer.sendRequest(UtilContent.reset);
-            clientServer.reset();
+            clientServer.closeSocket();
             clientServer = null;
             System.out.println("Reset client.");
         }
         System.out.println("Disconnect admin!!!");
     }
 
-    public void disconnectWithClient(long id){
+    public void disconnectWithClient(long id) {
         mapWork.remove(id);
         clientServer.interrupt();
-        clientServer = null;
         System.out.println("Disconnect client!!!");
-        System.out.println("Wait while clients connect...");
+        adminServer.sendRequest(UtilContent.reset);
+        clientServer = firstOrNonClient();
+        if (clientServer != null) {
+            try {
+                clientServer.createConnectSystemInfo();
+                runSystemInfo();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("Wait while client connect...");
+        }
     }
 
     public ServerSession getClientServer() {

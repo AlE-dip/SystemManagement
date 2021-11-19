@@ -1,10 +1,10 @@
 package client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import core.Core;
 import core.UtilContent;
 import core.ConnectionInfo;
 import core.Session;
+import org.opencv.core.Core;
 
 import java.io.*;
 import java.net.Socket;
@@ -22,6 +22,8 @@ public class Client {
     }
 
     public static void main(String[] args) {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
         Client client = new Client();
     }
 }

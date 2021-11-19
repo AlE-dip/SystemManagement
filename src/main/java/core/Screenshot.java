@@ -30,17 +30,18 @@ public class Screenshot {
 
     public static void record(Socket socket) throws AWTException, IOException {
         run = true;
-        User32 user32 = User32.INSTANCE;
-        //Get desktop windows handler
-        WinDef.HWND hwnd = user32.GetDesktopWindow();
-        //Create a BufferedImage
-        BufferedImage screenshot = GDI32Util.getScreenshot(hwnd);
+//        User32 user32 = User32.INSTANCE;
+//        //Get desktop windows handler
+//        WinDef.HWND hwnd = user32.GetDesktopWindow();
+//        //Create a BufferedImage
+//        BufferedImage screenshot = GDI32Util.getScreenshot(hwnd);
+
         //File file = new File("screenshot.png");
         //Save screenshot to a file
         //ImageIO.write(image, "png", file);
-//        Robot robot = new Robot();
-//        Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
-//        image = robot.createScreenCapture(screenRect);
+        Robot robot = new Robot();
+        Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+        //image = robot.createScreenCapture(screenRect);
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
         Thread thread = new Thread(new Runnable() {
@@ -49,7 +50,8 @@ public class Screenshot {
                 System.out.println("Record start...");
                 int i = 0;
                 while (run){
-                    BufferedImage screenshot = GDI32Util.getScreenshot(hwnd);
+                    //BufferedImage screenshot = GDI32Util.getScreenshot(hwnd);
+                    BufferedImage screenshot = robot.createScreenCapture(screenRect);
                     try {
                         paintCursor(screenshot);
 
@@ -90,17 +92,29 @@ public class Screenshot {
                     try {
 
                         Mat mat = Core.readBufferToMat(reader);
-                        BufferedImage screenshot = (BufferedImage) HighGui.toBufferedImage(mat);
+                        Thread thread1 = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                BufferedImage screenshot = (BufferedImage) HighGui.toBufferedImage(mat);
 
-                        Graphics2D graphics2D = screenshot.createGraphics();
-                        //panel.paint(graphics2D);
+                                //Graphics2D graphics2D = screenshot.createGraphics();
+                                //panel.paint(graphics2D);
 
-                        //ImageIcon icon = scaleImage(new ImageIcon(screenshot), label.getWidth(), label.getHeight());
-                        screenshot = Core.resize(screenshot, 900, 600);
-                        label.setIcon(new ImageIcon(screenshot));
+                                //ImageIcon icon = scaleImage(new ImageIcon(screenshot), label.getWidth(), label.getHeight());
+                                try {
+                                    //screenshot = Core.resizeImage2(screenshot, 900, 600);
+                                    label.setIcon(scaleImage(new ImageIcon(screenshot), label.getWidth(), label.getHeight()));
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+
 //                        label.setIcon(icon);
 
-                    } catch (IOException e) {
+                            }
+                        });
+                        thread1.start();
+
+                    } catch (Exception e) {
                         System.out.println("Screenshot.observer stop!");
                         e.printStackTrace();
                         return;
@@ -150,6 +164,6 @@ public class Screenshot {
             nw = (icon.getIconWidth() * nh) / icon.getIconHeight();
         }
 
-        return new ImageIcon(icon.getImage().getScaledInstance(nw, nh, Image.SCALE_DEFAULT));
+        return new ImageIcon(icon.getImage().getScaledInstance(nw, nh, Image.SCALE_SMOOTH));
     }
 }
