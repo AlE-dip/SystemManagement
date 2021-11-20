@@ -48,6 +48,7 @@ public class Server {
                     session.start();
                     System.out.println("Client connecting...");
                     forwarder.getMapWork().put(session.getId(), session);
+                    forwarder.newClient((int) session.getId());
                     if(forwarder.getAdminServer() != null && forwarder.getClientServer() == null){
                         forwarder.createConnectSystemInfoWithThisClient(session);
                     }

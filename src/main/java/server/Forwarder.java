@@ -3,11 +3,8 @@ package server;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import core.Core;
-import core.Session;
-import core.SystemSR;
 import core.UtilContent;
 import core.model.Action;
-import core.model.ClientInfo;
 import core.model.Clients;
 
 import java.io.BufferedReader;
@@ -52,14 +49,40 @@ public class Forwarder {
         if (systemInfoReceiveReady == "") {
             systemInfoReceiveReady = adminServer.getReaderSystemInfo().readLine();
         }
-        Action action = new Action(UtilContent.newClient, clientServer.getId());
+        //gửi danh sách client
+        Action action = new Action(UtilContent.newClientConnect, new Clients(getAllIdClient(), clientServer.getId()));
         String stringAction = new ObjectMapper().writeValueAsString(action);
         Core.writeString(adminServer.getWriterConnect(), stringAction);
+        //start
         if (systemInfoReceiveReady.equals(UtilContent.systemReceiveReady)) {
             forwardSystemInfo(adminServer.getWriterSystemInfo(), adminServer.getReaderSystemInfo(),
                     clientServer.getWriterSystemInfo(), clientServer.getReaderSystemInfo());
             Core.writeString(clientServer.getWriterSystemInfo(), UtilContent.systemForwardReady);
         }
+    }
+
+    public void newClient(int id) throws IOException {
+        if(adminServer != null){
+            Action action = new Action(UtilContent.newClient, id);
+            String stringAction = new ObjectMapper().writeValueAsString(action);
+            Core.writeString(adminServer.getWriterConnect(), stringAction);
+        }
+    }
+
+    public void destroyClient(int id) throws IOException {
+        if(adminServer != null){
+            Action action = new Action(UtilContent.destroyClient, id);
+            String stringAction = new ObjectMapper().writeValueAsString(action);
+            Core.writeString(adminServer.getWriterConnect(), stringAction);
+        }
+    }
+
+    private ArrayList<Long> getAllIdClient(){
+        ArrayList<Long> ids = new ArrayList<>();
+        for(Long id: mapWork.keySet()){
+            ids.add(id);
+        }
+        return ids;
     }
 
     public void runCamera() throws IOException {
@@ -177,19 +200,27 @@ public class Forwarder {
 
     public void disconnectWithClient(long id) {
         mapWork.remove(id);
-        clientServer.interrupt();
-        System.out.println("Disconnect client!!!");
-        adminServer.sendRequest(UtilContent.reset);
-        clientServer = firstOrNonClient();
-        if (clientServer != null) {
+        System.out.println("Disconnect client " + id + "!!!");
+        if(clientServer.getId() == id){
+            clientServer.interrupt();
+            adminServer.sendRequest(UtilContent.reset);
+            clientServer = firstOrNonClient();
+            if (clientServer != null) {
+                try {
+                    clientServer.createConnectSystemInfo();
+                    runSystemInfo();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("Wait while client connect...");
+            }
+        }else {
             try {
-                clientServer.createConnectSystemInfo();
-                runSystemInfo();
+                destroyClient((int) id);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else {
-            System.out.println("Wait while client connect...");
         }
     }
 

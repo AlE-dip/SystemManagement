@@ -1,20 +1,12 @@
 package server;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import core.Core;
 import core.Session;
-import core.SystemSR;
 import core.UtilContent;
 import core.model.Action;
-import core.model.ClientInfo;
-import core.model.Clients;
-
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Map;
 
 public class ServerSession extends Session {
 

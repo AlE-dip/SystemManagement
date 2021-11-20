@@ -5,7 +5,7 @@ public class UtilContent {
     public static final String client = "client";
     public static final String connected = "connected";
     public static final String systemForwardReady = "systemForwardReady";
-    public static String systemReceiveReady = "systemReceiveReady";
+    public static final String systemReceiveReady = "systemReceiveReady";
     public static final String stop = "stop";
     public static final String disconnect = "disconnect";
     public static final String stopSystemInfo = "stopSystemInfo";
@@ -15,10 +15,11 @@ public class UtilContent {
     public static final String createConnectCamera = "createConnectCamera";
     public static final String reset = "reset";
     public static final int timeCamera = 5000;
-    public static final int timeSystemInfo = 5000;
+    public static final int timeSystemInfo = 1000;
     public static final String address = "localhost";
     public static final int port = 50000;
-    public static final int newSocket = 1;
-    public static final String newClient = "newClient";
+    public static final String newClient = "newClient";//trường hợp 1 client kết nối
+    public static final String destroyClient = "destroyClient";//trường hợp 1 client kết nối
+    public static final String newClientConnect = "newClientConnect";//trường hợp client và admin gửi dữ liệu
     public static final String stopCamera = "stopCamera";
 }

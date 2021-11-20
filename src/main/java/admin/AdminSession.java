@@ -1,34 +1,33 @@
 package admin;
 
-import admin.gui.OshiGui;
+import admin.gui.AdminGui;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import core.Core;
 import core.Session;
-import core.SystemSR;
 import core.UtilContent;
 import core.model.Action;
-import core.model.ClientInfo;
 import core.model.Clients;
 import core.model.StringMat;
 import core.system.SystemInfo;
 import org.opencv.core.Mat;
-import org.opencv.highgui.HighGui;
-
-import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Scanner;
 
 public class AdminSession extends Session {
     private Thread threadSystemInfo;
     private String id;
     private Thread camera;
+    private AdminGui gui;
 
-    public AdminSession(Socket skConnect) throws IOException {
+    public AdminSession(Socket skConnect, AdminGui gui) throws IOException {
         super(skConnect);
+        this.gui = gui;
         Core.writeString(writerConnect, UtilContent.admin);
         id = readerConnect.readLine();
     }
@@ -57,16 +56,25 @@ public class AdminSession extends Session {
         threadSystemInfo = new Thread(new Runnable() {
             @Override
             public void run() {
-                int i = 0;
                 while (true){
                     try {
                         String dataSystem = reader.readLine();
-                        SystemInfo systemInfo = mapper.readerFor(SystemInfo.class).readValue(dataSystem);
-
-                        System.out.print(i + ": ");
-                        i++;
-                        System.out.println(dataSystem);
-
+                        Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    SystemInfo systemInfo = mapper.readerFor(SystemInfo.class).readValue(dataSystem);
+                                    if(gui.created){
+                                        gui.refresh(systemInfo);
+                                    }else {
+                                        gui.create(systemInfo);
+                                    }
+                                } catch (JsonProcessingException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                        thread.start();
                         Core.writeString(writer, UtilContent.continues);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -146,8 +154,19 @@ public class AdminSession extends Session {
                 } else {
                     Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
                     switch (action.getAction()){
+                        case UtilContent.newClientConnect: {
+                            LinkedHashMap<String, Object> clients = (LinkedHashMap<String, Object>) action.getData();
+                            gui.addUserButtons((ArrayList<Integer>) clients.get("ids"));
+                            gui.setCurrentButton((Integer) clients.get("current"));
+                            break;
+                        }
                         case UtilContent.newClient: {
-                            System.out.println("New client: " + action.getData());
+                            gui.addUserButton((Integer) action.getData());
+                            break;
+                        }
+                        case UtilContent.destroyClient: {
+                            gui.destroyUserButton((Integer) action.getData());
+                            break;
                         }
                     }
                 }

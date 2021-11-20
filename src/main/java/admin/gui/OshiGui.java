@@ -37,6 +37,7 @@ public class OshiGui {
 
     private JFrame mainFrame;
     private JButton jMenu;
+    OsHwTextPanel osHwTextPanel;
 
     private oshi.SystemInfo si = new oshi.SystemInfo();
     private SystemInfo systemInfo;
@@ -48,14 +49,6 @@ public class OshiGui {
 
     }
 
-    public OshiGui(SystemInfo systemInfo) {
-        init();
-        SwingUtilities.invokeLater(this::setVisible);
-    }
-
-    public OshiGui() {
-    }
-
     private void setVisible() {
         mainFrame.setVisible(true);
         mainFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -63,6 +56,7 @@ public class OshiGui {
     }
 
     private void init() {
+        osHwTextPanel = new OsHwTextPanel();
         // Create the external frame
         mainFrame = new JFrame(Config.GUI_TITLE);
         mainFrame.setSize(Config.GUI_WIDTH, Config.GUI_HEIGHT);
@@ -74,7 +68,7 @@ public class OshiGui {
         JMenuBar menuBar = new JMenuBar();
         mainFrame.setJMenuBar(menuBar);
         // Assign the first menu option to be clicked on visibility
-        jMenu = getJMenu("OS & HW Info", 'O', "Hardware & OS Summary", new OsHwTextPanel(systemInfo));
+        jMenu = getJMenu("OS & HW Info", 'O', "Hardware & OS Summary", osHwTextPanel);
         menuBar.add(jMenu);
         // Add later menu items
         menuBar.add(getJMenu("Memory", 'M', "Memory Summary", new MemoryPanel(si)));
@@ -99,6 +93,24 @@ public class OshiGui {
         });
 
         return button;
+    }
+
+    public void refresh(SystemInfo systemInfo){
+        if(this.systemInfo == null){
+            this.systemInfo = systemInfo;
+            init();
+            SwingUtilities.invokeLater(this::setVisible);
+        }else {
+            osHwTextPanel.refresh(systemInfo);
+        }
+    }
+
+    public SystemInfo getSystemInfo() {
+        return systemInfo;
+    }
+
+    public void setSystemInfo(SystemInfo systemInfo) {
+        this.systemInfo = systemInfo;
     }
 
     private void resetMainGui() {

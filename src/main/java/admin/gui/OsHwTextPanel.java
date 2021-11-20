@@ -52,15 +52,16 @@ public class OsHwTextPanel extends OshiJPanel { // NOSONAR squid:S110
     private static final String DISPLAYS = "Displays";
     private String osPrefix;
     private JTextArea osArea;
+    private JTextArea csArea;
+    private JTextArea displayArea;
+    private JTextArea procArea;
 
-    public OsHwTextPanel(SystemInfo si) {
+    public OsHwTextPanel() {
         super();
-        init(si);
+        init();
     }
 
-    private void init(SystemInfo si) {
-        osPrefix = getOsPrefix(si);
-
+    private void init() {
         GridBagConstraints osLabel = new GridBagConstraints();
         GridBagConstraints osConstraints = new GridBagConstraints();
         osConstraints.gridy = 1;
@@ -89,22 +90,22 @@ public class OsHwTextPanel extends OshiJPanel { // NOSONAR squid:S110
         oshwPanel.setLayout(new GridBagLayout());
 
         osArea = new JTextArea(0, 0);
-        osArea.setText(osPrefix + si.getOperatingSystem().getUpTime());
+        osArea.setText("");//osPrefix + si.getOperatingSystem().getUpTime()
         oshwPanel.add(new JLabel(OPERATING_SYSTEM), osLabel);
         oshwPanel.add(osArea, osConstraints);
 
-        JTextArea procArea = new JTextArea(0, 0);
-        procArea.setText(getProc(si));
+        procArea = new JTextArea(0, 0);
+        procArea.setText("");//getProc(si)
         oshwPanel.add(new JLabel(PROCESSOR), procLabel);
         oshwPanel.add(procArea, procConstraints);
 
-        JTextArea displayArea = new JTextArea(0, 0);
-        displayArea.setText(getDisplay(si));
+        displayArea = new JTextArea(0, 0);
+        displayArea.setText("");//getDisplay(si)
         oshwPanel.add(new JLabel(DISPLAYS), displayLabel);
         oshwPanel.add(displayArea, displayConstraints);
 
-        JTextArea csArea = new JTextArea(0, 0);
-        csArea.setText(getHw(si));
+        csArea = new JTextArea(0, 0);
+        csArea.setText("");//getHw(si)
         oshwPanel.add(new JLabel(HARDWARE_INFORMATION), csLabel);
         oshwPanel.add(csArea, csConstraints);
 
@@ -126,7 +127,7 @@ public class OsHwTextPanel extends OshiJPanel { // NOSONAR squid:S110
             sb.append(mapper.writeValueAsString(si.getFirmware()).substring(0, 8) + "\n"); //con
             sb.append(mapper.writeValueAsString(si.getBaseboard()).substring(0, 8) + "\n"); //con
             sb.append(si.getModel() + "\n");
-            sb.append(si.getManufacturer() + "\n");
+            sb.append(si.getManufacturer() + " Để tạm\n");
             sb.append(si.getSerialNumber() + "\n");
             sb.append(si.getHardwareUUID() + "\n");
         } catch (JsonProcessingException e) {
@@ -147,7 +148,22 @@ public class OsHwTextPanel extends OshiJPanel { // NOSONAR squid:S110
         return sb.toString();
     }
 
-    private void updateOsData(SystemInfo si) {
+    public void reset(){
+        osArea.setText("");
+        csArea.setText("");
+        displayArea.setText("");
+        procArea.setText("");
+    }
+
+    public void create(SystemInfo systemInfo){
+        osPrefix = getOsPrefix(systemInfo);
+        osArea.setText(osPrefix + systemInfo.getOperatingSystem().getUpTime());
+        procArea.setText(getProc(systemInfo));
+        displayArea.setText(getDisplay(systemInfo));
+        csArea.setText(getHw(systemInfo));
+    }
+
+    public void refresh(SystemInfo si) {
         osArea.setText(osPrefix + si.getOperatingSystem().getUpTime());
     }
 }

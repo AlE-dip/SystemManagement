@@ -3,21 +3,32 @@ package core.model;
 import java.util.ArrayList;
 
 public class Clients {
-    ArrayList<ClientInfo> clientInfos;
+    private ArrayList<Long> ids;
+    private long current;
 
     public Clients() {
-        this.clientInfos = null;
+        ids = null;
+        current = 0;
     }
 
-    public Clients(ArrayList<ClientInfo> clientInfos) {
-        this.clientInfos = clientInfos;
+    public Clients(ArrayList<Long> ids, long current) {
+        this.ids = ids;
+        this.current = current;
     }
 
-    public ArrayList<ClientInfo> getClientInfos() {
-        return clientInfos;
+    public ArrayList<Long> getIds() {
+        return ids;
     }
 
-    public void setClientInfos(ArrayList<ClientInfo> clientInfos) {
-        this.clientInfos = clientInfos;
+    public void setIds(ArrayList<Long> ids) {
+        this.ids = ids;
+    }
+
+    public long getCurrent() {
+        return current;
+    }
+
+    public void setCurrent(long current) {
+        this.current = current;
     }
 }
