@@ -4,6 +4,8 @@ import core.system.SystemInfo;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,9 +21,10 @@ public class AdminGui extends JFrame {
     public boolean created;
     private SystemInfo systemInfo;
     private oshi.SystemInfo si;
-    private Map<Integer, JButton> listUser;
-    public int currentUser;
+    private ArrayList<String> listUser;
+    public String currentUser;
     private JButton currentButton;
+    public GuiAction guiAction;
 
     public AdminGui() {
         super("System Management");
@@ -37,8 +40,8 @@ public class AdminGui extends JFrame {
 
     private void init() {
         created = false;
-        currentUser = -111;
-        listUser = new LinkedHashMap<>();
+        currentUser = "";
+        listUser = new ArrayList<>();
         osHwTextPanel = new OsHwTextPanel();
         tpUser.addTab("OS & HW Info", null, osHwTextPanel, "O");
         tpUser.addTab("Memory", null, new MemoryPanel(si), "click to show panel 2");
@@ -48,52 +51,58 @@ public class AdminGui extends JFrame {
         add(pnListUser, BorderLayout.WEST);
     }
 
-    public void addUserButtons(ArrayList<Integer> ids) {
+    public void addUserButtons(ArrayList<String> ids) {
         listUser.clear();
         pnListUser.removeAll();
-        for (int id : ids) {
+        for (String id : ids) {
             JButton button = new JButton("user - " + id);
             button.setVisible(true);
-            listUser.put(id, button);
+            setEventButton(button, id);
+            listUser.add(id);
             pnListUser.add(button);
         }
         pnListUser.revalidate();
         pnListUser.repaint();
     }
 
-    public void addUserButton(int id) {
+    public void addUserButton(String id) {
         JButton button = new JButton("user - " + id);
         button.setVisible(true);
-        listUser.put(id, button);
+        setEventButton(button, id);
+        listUser.add(id);
         pnListUser.add(button);
         pnListUser.revalidate();
         pnListUser.repaint();
     }
 
-    public void destroyUserButton(int id) {
-        listUser.remove(id);
-        pnListUser.removeAll();
-        for (Integer i : listUser.keySet()) {
-            JButton button = new JButton("user - " + i);
-            button.setVisible(true);
-            if (currentUser == i) {
-                currentButton = button;
-                currentButton.setBackground(Color.ORANGE);
+    public void setEventButton(JButton jButton, String id){
+        jButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                guiAction.changeCurrentUser(id);
             }
-            pnListUser.add(button);
-        }
+        });
+    }
+
+    public void destroyUserButton(String id) {
+        int index = listUser.indexOf(id);
+        listUser.remove(id);
+        pnListUser.remove(index);
         pnListUser.revalidate();
         pnListUser.repaint();
     }
 
-    public void setCurrentButton(int id) {
-        if (currentUser == id) {
+    public void setCurrentButton(String id) {
+        if (currentUser.equals(id)) {
             currentButton.setBackground(Color.ORANGE);
         } else {
-            currentButton = listUser.get(id);
-            currentButton.setBackground(Color.ORANGE);
-            currentUser = id;
-            reset();
+            Component[] components = pnListUser.getComponents();
+            if(components[listUser.indexOf(id)] instanceof JButton){
+                currentButton = (JButton) components[listUser.indexOf(id)];
+                currentButton.setBackground(Color.ORANGE);
+                currentUser = id;
+                reset();
+            }
         }
     }
 
@@ -109,5 +118,9 @@ public class AdminGui extends JFrame {
 
     public void refresh(SystemInfo systemInfo) {
         osHwTextPanel.refresh(systemInfo);
+    }
+
+    public interface GuiAction {
+        public void changeCurrentUser(String id);
     }
 }

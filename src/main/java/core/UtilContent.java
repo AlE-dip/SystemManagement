@@ -20,6 +20,9 @@ public class UtilContent {
     public static final int port = 50000;
     public static final String newClient = "newClient";//trường hợp 1 client kết nối
     public static final String destroyClient = "destroyClient";//trường hợp 1 client kết nối
+    public static final String changeCurrent = "changeCurrent";//trường hợp thay đổi client từ admin
     public static final String newClientConnect = "newClientConnect";//trường hợp client và admin gửi dữ liệu
     public static final String stopCamera = "stopCamera";
+    public static final String listId = "listId";
+    public static final String current = "current";
 }

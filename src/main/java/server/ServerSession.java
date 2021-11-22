@@ -47,6 +47,10 @@ public class ServerSession extends Session {
                     switch (action.getAction()) {
                         case UtilContent.disconnect: {
                             System.out.println("Disconnect " + role + "!");
+                            break;
+                        }
+                        case UtilContent.changeCurrent: {
+                            Server.forwarder.changeCurrentClient((String) action.getData());
                         }
                     }
                 }

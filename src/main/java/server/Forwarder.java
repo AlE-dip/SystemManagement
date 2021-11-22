@@ -12,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Forwarder {
@@ -50,7 +51,10 @@ public class Forwarder {
             systemInfoReceiveReady = adminServer.getReaderSystemInfo().readLine();
         }
         //gửi danh sách client
-        Action action = new Action(UtilContent.newClientConnect, new Clients(getAllIdClient(), clientServer.getId()));
+        Map<String, Object> mapDataUser = new LinkedHashMap<>();
+        mapDataUser.put(UtilContent.listId, getAllIdClient());
+        mapDataUser.put(UtilContent.current, clientServer.getId() + "");
+        Action action = new Action(UtilContent.newClientConnect, mapDataUser);
         String stringAction = new ObjectMapper().writeValueAsString(action);
         Core.writeString(adminServer.getWriterConnect(), stringAction);
         //start
@@ -61,7 +65,7 @@ public class Forwarder {
         }
     }
 
-    public void newClient(int id) throws IOException {
+    public void newClient(String id) throws IOException {
         if(adminServer != null){
             Action action = new Action(UtilContent.newClient, id);
             String stringAction = new ObjectMapper().writeValueAsString(action);
@@ -69,7 +73,7 @@ public class Forwarder {
         }
     }
 
-    public void destroyClient(int id) throws IOException {
+    public void destroyClient(String id) throws IOException {
         if(adminServer != null){
             Action action = new Action(UtilContent.destroyClient, id);
             String stringAction = new ObjectMapper().writeValueAsString(action);
@@ -77,10 +81,29 @@ public class Forwarder {
         }
     }
 
-    private ArrayList<Long> getAllIdClient(){
-        ArrayList<Long> ids = new ArrayList<>();
+    public void changeCurrentClient(String id) throws IOException {
+        if(clientServer != null){
+            try {
+                Core.writeString(clientServer.getWriterSystemInfo(), UtilContent.stopSystemInfo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            clientServer.sendRequest(UtilContent.reset);
+            clientServer.closeSocket();
+            clientServer = null;
+        }
+        clientServer = mapWork.get(Long.parseLong(id));
+        if(clientServer != null){
+            adminServer.sendRequest(UtilContent.reset);
+            clientServer.createConnectSystemInfo();
+            runSystemInfo();
+        }
+    }
+
+    private ArrayList<String> getAllIdClient(){
+        ArrayList<String> ids = new ArrayList<>();
         for(Long id: mapWork.keySet()){
-            ids.add(id);
+            ids.add(id + "");
         }
         return ids;
     }
@@ -180,6 +203,7 @@ public class Forwarder {
 
     }
 
+    //xóa admin, tạm dùng client
     public void disconnectWithAdmin() {
         adminServer.interrupt();
         adminServer = null;
@@ -198,10 +222,12 @@ public class Forwarder {
         System.out.println("Disconnect admin!!!");
     }
 
+    //Xóa client, reset admin
     public void disconnectWithClient(long id) {
         mapWork.remove(id);
         System.out.println("Disconnect client " + id + "!!!");
         if(clientServer.getId() == id){
+            //trường hợp mất connect với current client
             clientServer.interrupt();
             adminServer.sendRequest(UtilContent.reset);
             clientServer = firstOrNonClient();
@@ -216,8 +242,9 @@ public class Forwarder {
                 System.out.println("Wait while client connect...");
             }
         }else {
+            //trường hợp mất connect với client khác
             try {
-                destroyClient((int) id);
+                destroyClient(id + "");
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -35,6 +35,22 @@ public class AdminSession extends Session {
     public void createConnectSystemInfo() throws IOException {
         skSystemInfo = new Socket(UtilContent.address, UtilContent.port);
         createBufferedSystemInfo();
+
+        //set action changeCurrent cho gui
+        gui.guiAction = new AdminGui.GuiAction() {
+            @Override
+            public void changeCurrentUser(String id) {
+                try {
+                    Action action = new Action(UtilContent.changeCurrent, id);
+                    String stringAction = new ObjectMapper().writeValueAsString(action);
+                    Core.writeString(writerConnect, stringAction);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        //Bắt đầu trao đổi systemInfo
         Action action = new Action(UtilContent.createConnectSystemInfo, id);
         String stringAction = new ObjectMapper().writeValueAsString(action);
         Core.writeString(writerSystemInfo, stringAction);
@@ -155,17 +171,17 @@ public class AdminSession extends Session {
                     Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
                     switch (action.getAction()){
                         case UtilContent.newClientConnect: {
-                            LinkedHashMap<String, Object> clients = (LinkedHashMap<String, Object>) action.getData();
-                            gui.addUserButtons((ArrayList<Integer>) clients.get("ids"));
-                            gui.setCurrentButton((Integer) clients.get("current"));
+                            LinkedHashMap<String, Object> mapDataUser = (LinkedHashMap<String, Object>) action.getData();
+                            gui.addUserButtons((ArrayList<String>) mapDataUser.get(UtilContent.listId));
+                            gui.setCurrentButton((String) mapDataUser.get(UtilContent.current));
                             break;
                         }
                         case UtilContent.newClient: {
-                            gui.addUserButton((Integer) action.getData());
+                            gui.addUserButton((String) action.getData());
                             break;
                         }
                         case UtilContent.destroyClient: {
-                            gui.destroyUserButton((Integer) action.getData());
+                            gui.destroyUserButton((String) action.getData());
                             break;
                         }
                     }
