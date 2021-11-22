@@ -10,8 +10,8 @@ public class Process {
     private int threadCount;
     private double processCpuLoad;
     private double processCumulative;
-    private double virtualSize;
-    private double residentSetSize;
+    private long virtualSize;
+    private long residentSetSize;
     private String name;
     private OSProcess process;
 
@@ -82,19 +82,19 @@ public class Process {
         this.processCumulative = processCumulative;
     }
 
-    public double getVirtualSize() {
+    public long getVirtualSize() {
         return virtualSize;
     }
 
-    public void setVirtualSize(double virtualSize) {
+    public void setVirtualSize(long virtualSize) {
         this.virtualSize = virtualSize;
     }
 
-    public double getResidentSetSize() {
+    public long getResidentSetSize() {
         return residentSetSize;
     }
 
-    public void setResidentSetSize(double residentSetSize) {
+    public void setResidentSetSize(long residentSetSize) {
         this.residentSetSize = residentSetSize;
     }
 

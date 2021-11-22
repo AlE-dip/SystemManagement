@@ -18,6 +18,11 @@ public class AdminGui extends JFrame {
     private JPanel pnListUser;
     //OshiGui
     private OsHwTextPanel osHwTextPanel;
+    private MemoryPanel memoryPanel;
+    private ProcessorPanel processorPanel;
+    private FileStorePanel fileStorePanel;
+    private ProcessPanel processPanel;
+    private InterfacePanel interfacePanel;
     public boolean created;
     private SystemInfo systemInfo;
     private oshi.SystemInfo si;
@@ -43,8 +48,17 @@ public class AdminGui extends JFrame {
         currentUser = "";
         listUser = new ArrayList<>();
         osHwTextPanel = new OsHwTextPanel();
+        memoryPanel = new MemoryPanel();
+        processorPanel = new ProcessorPanel();
+        fileStorePanel = new FileStorePanel();
+        processPanel = new ProcessPanel();
+        interfacePanel = new InterfacePanel();
         tpUser.addTab("OS & HW Info", null, osHwTextPanel, "O");
-        tpUser.addTab("Memory", null, new MemoryPanel(si), "click to show panel 2");
+        tpUser.addTab("Memory", null, memoryPanel, "M");
+        tpUser.addTab("CPU", null, processorPanel, "P");
+        tpUser.addTab("FileStores", null, fileStorePanel, "F");
+        tpUser.addTab("Processes", null, processPanel, "P");
+        tpUser.addTab("Network", null, interfacePanel, "I");
 
         pnListUser = new JPanel(new GridLayout(10, 1, 1, 5));
         pnListUser.setVisible(true);
@@ -108,16 +122,30 @@ public class AdminGui extends JFrame {
 
     public void create(SystemInfo systemInfo) {
         osHwTextPanel.create(systemInfo);
+        memoryPanel.create(systemInfo.getMemory());
+        processorPanel.create(systemInfo);
+        fileStorePanel.create(systemInfo.getFileSystem());
+        processPanel.create(systemInfo);
+        interfacePanel.create(systemInfo);
         created = true;
     }
 
     public void reset() {
         osHwTextPanel.reset();
+        memoryPanel.reset();
+        processorPanel.reset();
+        fileStorePanel.reset();
+        processPanel.reset();
+        interfacePanel.reset();
         created = false;
     }
 
     public void refresh(SystemInfo systemInfo) {
         osHwTextPanel.refresh(systemInfo);
+        memoryPanel.refresh(systemInfo.getMemory());
+        processorPanel.refresh(systemInfo.getProcessor());
+        fileStorePanel.refresh(systemInfo.getFileSystem());
+        processPanel.refresh(systemInfo);
     }
 
     public interface GuiAction {

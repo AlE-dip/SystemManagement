@@ -23,6 +23,8 @@
  */
 package admin.gui;
 
+import core.system.Memory;
+import core.system.VirtualMemory;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -31,10 +33,6 @@ import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.general.DefaultPieDataset;
-import oshi.SystemInfo;
-import oshi.hardware.GlobalMemory;
-import oshi.hardware.PhysicalMemory;
-import oshi.hardware.VirtualMemory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -55,22 +53,28 @@ public class MemoryPanel extends OshiJPanel { // NOSONAR squid:S110
     private static final String USED = "Used";
     private static final String AVAILABLE = "Available";
 
-    public MemoryPanel(SystemInfo si) {
+    private DefaultPieDataset<String> physMemData;
+    private DefaultPieDataset<String> virtMemData;
+    private JFreeChart physMem;
+    private JFreeChart virtMem;
+    private JTextArea textArea;
+
+    public MemoryPanel() {
         super();
-        init(si.getHardware().getMemory());
+        init();//si.getHardware().getMemory()
     }
 
-    private void init(GlobalMemory memory) {
-        DefaultPieDataset<String> physMemData = new DefaultPieDataset<>();
-        DefaultPieDataset<String> virtMemData = new DefaultPieDataset<>();
-        updateDatasets(memory, physMemData, virtMemData);
+    private void init(/*GlobalMemory memory*/) {
+        physMemData = new DefaultPieDataset<>();
+        virtMemData = new DefaultPieDataset<>();
+        //updateDatasets(memory, physMemData, virtMemData);
 
-        JFreeChart physMem = ChartFactory.createPieChart(PHYSICAL_MEMORY, physMemData, true, true, false);
-        JFreeChart virtMem = ChartFactory.createPieChart(VIRTUAL_MEMORY, virtMemData, true, true, false);
+        physMem = ChartFactory.createPieChart(PHYSICAL_MEMORY, physMemData, true, true, false);
+        virtMem = ChartFactory.createPieChart(VIRTUAL_MEMORY, virtMemData, true, true, false);
         configurePlot(physMem);
         configurePlot(virtMem);
-        physMem.setSubtitles(Collections.singletonList(new TextTitle(updatePhysTitle(memory))));
-        virtMem.setSubtitles(Collections.singletonList(new TextTitle(updateVirtTitle(memory))));
+        physMem.setSubtitles(Collections.singletonList(new TextTitle("")));//updatePhysTitle(memory)
+        virtMem.setSubtitles(Collections.singletonList(new TextTitle("")));//updateVirtTitle(memory)
 
         GridBagConstraints pmConstraints = new GridBagConstraints();
         pmConstraints.weightx = 1d;
@@ -88,46 +92,40 @@ public class MemoryPanel extends OshiJPanel { // NOSONAR squid:S110
         memoryPanel.add(new ChartPanel(physMem), pmConstraints);
         memoryPanel.add(new ChartPanel(virtMem), vmConstraints);
 
-        JTextArea textArea = new JTextArea(60, 20);
-        textArea.setText(updateMemoryText(memory));
+        textArea = new JTextArea(60, 20);
+        textArea.setText("");//updateMemoryText(memory)
         memoryPanel.add(textArea, textConstraints);
 
         add(memoryPanel, BorderLayout.CENTER);
 
-        Timer timer = new Timer(Config.REFRESH_SLOW, e -> {
-            updateDatasets(memory, physMemData, virtMemData);
-            physMem.setSubtitles(Collections.singletonList(new TextTitle(updatePhysTitle(memory))));
-            virtMem.setSubtitles(Collections.singletonList(new TextTitle(updateVirtTitle(memory))));
-            textArea.setText(updateMemoryText(memory));
-        });
-        timer.start();
+//        Timer timer = new Timer(Config.REFRESH_SLOW, e -> {
+//            updateDatasets(memory, physMemData, virtMemData);
+//            physMem.setSubtitles(Collections.singletonList(new TextTitle(updatePhysTitle(memory))));
+//            virtMem.setSubtitles(Collections.singletonList(new TextTitle(updateVirtTitle(memory))));
+//            textArea.setText(updateMemoryText(memory));
+//        });
+//        timer.start();
     }
 
-    private static String updatePhysTitle(GlobalMemory memory) {
-        return memory.toString();
+    private static String updatePhysTitle(Memory memory) {
+        return memory.getPhysicalTitle();
     }
 
-    private static String updateVirtTitle(GlobalMemory memory) {
-        return memory.getVirtualMemory().toString();
+    private static String updateVirtTitle(Memory memory) {
+        return memory.getVirtualMemory().getVirtualTitle();
     }
 
-    private static String updateMemoryText(GlobalMemory memory) {
-        StringBuilder sb = new StringBuilder();
-        List<PhysicalMemory> pmList = memory.getPhysicalMemory();
-        for (PhysicalMemory pm : pmList) {
-            sb.append('\n').append(pm.toString());
-        }
-        return sb.toString();
+    private static String updateMemoryText(Memory memory) {
+        return memory.getPhysicalMemory();
     }
 
-    private static void updateDatasets(GlobalMemory memory, DefaultPieDataset<String> physMemData,
-            DefaultPieDataset<String> virtMemData) {
-        physMemData.setValue(USED, (double) memory.getTotal() - memory.getAvailable());
+    private static void updateDatasets(Memory memory, DefaultPieDataset<String> physMemData, DefaultPieDataset<String> virtMemData) {
+        physMemData.setValue(USED, (double) memory.getUse());
         physMemData.setValue(AVAILABLE, memory.getAvailable());
 
         VirtualMemory virtualMemory = memory.getVirtualMemory();
         virtMemData.setValue(USED, virtualMemory.getSwapUsed());
-        virtMemData.setValue(AVAILABLE, (double) virtualMemory.getSwapTotal() - virtualMemory.getSwapUsed());
+        virtMemData.setValue(AVAILABLE, (double) virtualMemory.getSwapavAilable());
     }
 
     private static void configurePlot(JFreeChart chart) {
@@ -141,5 +139,28 @@ public class MemoryPanel extends OshiJPanel { // NOSONAR squid:S110
         PieSectionLabelGenerator labelGenerator = new StandardPieSectionLabelGenerator("{0}: {1} ({2})",
                 new DecimalFormat("0"), new DecimalFormat("0%"));
         plot.setLabelGenerator(labelGenerator);
+    }
+
+    public void create(Memory memory) {
+        updateDatasets(memory, physMemData, virtMemData);
+        physMem.setSubtitles(Collections.singletonList(new TextTitle(updatePhysTitle(memory))));
+        virtMem.setSubtitles(Collections.singletonList(new TextTitle(updateVirtTitle(memory))));
+        textArea.setText(updateMemoryText(memory));
+    }
+
+    public void reset() {
+        physMemData.setValue(USED, (double) 0);
+        physMemData.setValue(AVAILABLE, 100);
+        virtMemData.setValue(USED, 0);
+        virtMemData.setValue(AVAILABLE, (double) 100);
+        physMem.setSubtitles(Collections.singletonList(new TextTitle("")));
+        virtMem.setSubtitles(Collections.singletonList(new TextTitle("")));
+        textArea.setText("");
+    }
+
+    public void refresh(Memory memory) {
+        updateDatasets(memory, physMemData, virtMemData);
+        physMem.setSubtitles(Collections.singletonList(new TextTitle(updatePhysTitle(memory))));
+        virtMem.setSubtitles(Collections.singletonList(new TextTitle(updateVirtTitle(memory))));
     }
 }

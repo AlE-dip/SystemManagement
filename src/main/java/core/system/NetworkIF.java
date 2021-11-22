@@ -1,5 +1,7 @@
 package core.system;
 
+import oshi.util.Constants;
+
 import java.util.List;
 
 public class NetworkIF {
@@ -25,7 +27,7 @@ public class NetworkIF {
         this.speed = networkIF.getSpeed();
         this.ipV4Address = getIPAddressesString(networkIF.getIPv4addr());
         this.ipV6Addresses = getIPAddressesString(networkIF.getIPv6addr());
-        this.macAddress = networkIF.getMacaddr();
+        this.macAddress = Constants.UNKNOWN.equals(networkIF.getMacaddr()) ? "" : networkIF.getMacaddr();
     }
 
     public static String getIPAddressesString(String[] ipAddressArr) {
