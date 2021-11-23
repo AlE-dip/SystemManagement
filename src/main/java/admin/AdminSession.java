@@ -172,12 +172,13 @@ public class AdminSession extends Session {
                     switch (action.getAction()){
                         case UtilContent.newClientConnect: {
                             LinkedHashMap<String, Object> mapDataUser = (LinkedHashMap<String, Object>) action.getData();
-                            gui.addUserButtons((ArrayList<String>) mapDataUser.get(UtilContent.listId));
+                            gui.addUserButtons((ArrayList<ArrayList<String>>) mapDataUser.get(UtilContent.listId));
                             gui.setCurrentButton((String) mapDataUser.get(UtilContent.current));
                             break;
                         }
                         case UtilContent.newClient: {
-                            gui.addUserButton((String) action.getData());
+                            ArrayList<String> data = (ArrayList<String>) action.getData();
+                            gui.addUserButton(data.get(0), data.get(1));
                             break;
                         }
                         case UtilContent.destroyClient: {

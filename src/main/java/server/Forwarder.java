@@ -65,9 +65,9 @@ public class Forwarder {
         }
     }
 
-    public void newClient(String id) throws IOException {
+    public void newClient(String id, String clientHostName) throws IOException {
         if(adminServer != null){
-            Action action = new Action(UtilContent.newClient, id);
+            Action action = new Action(UtilContent.newClient, new String[] {id, clientHostName});
             String stringAction = new ObjectMapper().writeValueAsString(action);
             Core.writeString(adminServer.getWriterConnect(), stringAction);
         }
@@ -100,10 +100,10 @@ public class Forwarder {
         }
     }
 
-    private ArrayList<String> getAllIdClient(){
-        ArrayList<String> ids = new ArrayList<>();
-        for(Long id: mapWork.keySet()){
-            ids.add(id + "");
+    private ArrayList<String[]> getAllIdClient(){
+        ArrayList<String[]> ids = new ArrayList<>();
+        for(Map.Entry<Long, ServerSession> entry: mapWork.entrySet()){
+            ids.add(new String[] {entry.getValue().getId() + "", entry.getValue().clientHostName});
         }
         return ids;
     }

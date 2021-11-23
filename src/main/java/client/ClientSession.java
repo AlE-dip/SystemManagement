@@ -25,6 +25,11 @@ public class ClientSession extends Session {
     public ClientSession(Socket skConnect) throws IOException {
         super(skConnect);
         Core.writeString(writerConnect, UtilContent.client);
+        //send name PC
+        oshi.SystemInfo si = new oshi.SystemInfo();
+        String hostName = si.getOperatingSystem().getNetworkParams().getHostName();
+        Core.writeString(writerConnect, hostName);
+        //Nhận id từ server
         id = readerConnect.readLine();
     }
 

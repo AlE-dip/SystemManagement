@@ -41,14 +41,16 @@ public class Server {
                     forwarder.setAdminServer(session);
                     forwarder.createConnectSystemInfo();
                 }else if (stringAction.equals(UtilContent.client)){
+                    String hostName = reader.readLine();
                     ServerSession session = new ServerSession(socket);
+                    session.clientHostName = hostName;
                     session.setWriterConnect(writer);
                     session.setReaderConnect(reader);
                     session.setRole(UtilContent.client);
                     session.start();
                     System.out.println("Client connecting...");
                     forwarder.getMapWork().put(session.getId(), session);
-                    forwarder.newClient(session.getId() + "");
+                    forwarder.newClient(session.getId() + "", session.clientHostName);
                     if(forwarder.getAdminServer() != null && forwarder.getClientServer() == null){
                         forwarder.createConnectSystemInfoWithThisClient(session);
                     }

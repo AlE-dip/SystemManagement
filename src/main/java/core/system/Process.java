@@ -30,8 +30,7 @@ public class Process {
         this.pid = process.getProcessID();
         this.parentProcessId = process.getParentProcessID();
         this.threadCount = process.getThreadCount();
-        this.processCpuLoad = 0;
-        this.processCumulative = process.getProcessCpuLoadCumulative();
+        this.processCumulative = 100d * process.getProcessCpuLoadCumulative();
         this.virtualSize = process.getVirtualSize();
         this.residentSetSize = process.getResidentSetSize();
         this.name = process.getName();
@@ -39,7 +38,7 @@ public class Process {
     }
 
     public void caculateCpuTicks(OSProcess oldProcess) {
-        this.processCpuLoad = process.getProcessCpuLoadBetweenTicks(oldProcess);
+        this.processCpuLoad = 100d * process.getProcessCpuLoadBetweenTicks(oldProcess);
     }
 
     public int getPid() {

@@ -65,22 +65,22 @@ public class AdminGui extends JFrame {
         add(pnListUser, BorderLayout.WEST);
     }
 
-    public void addUserButtons(ArrayList<String> ids) {
+    public void addUserButtons(ArrayList<ArrayList<String>> ids) {
         listUser.clear();
         pnListUser.removeAll();
-        for (String id : ids) {
-            JButton button = new JButton("user - " + id);
+        for (ArrayList<String> id : ids) {
+            JButton button = new JButton(id.get(1) + " - " + id.get(0));
             button.setVisible(true);
-            setEventButton(button, id);
-            listUser.add(id);
+            setEventButton(button, id.get(0));
+            listUser.add(id.get(0));
             pnListUser.add(button);
         }
         pnListUser.revalidate();
         pnListUser.repaint();
     }
 
-    public void addUserButton(String id) {
-        JButton button = new JButton("user - " + id);
+    public void addUserButton(String id, String clientHostName) {
+        JButton button = new JButton(clientHostName + " - " + id);
         button.setVisible(true);
         setEventButton(button, id);
         listUser.add(id);

@@ -10,7 +10,7 @@ import java.net.Socket;
 
 public class ServerSession extends Session {
 
-    int port;
+    String clientHostName;
 
     public ServerSession(Socket skConnect) throws IOException {
         super(skConnect);

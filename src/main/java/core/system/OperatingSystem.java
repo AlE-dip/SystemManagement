@@ -5,17 +5,15 @@ import oshi.software.os.OSProcess;
 import oshi.util.FormatUtil;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class OperatingSystem {
     public static final int sortByCpu = 1;
     public static final int sortByCumulative = 2;
     public static final int sortByMemory = 3;
-    public static final int processor = 4;
-    public static final int system = 5;
+    public static final int sortByName = 4;
+    public static final int processor = 5;
+    public static final int system = 6;
     private ArrayList<Process> processes;
     private Map<Integer, OSProcess> oldOSProcess;
     // os and hw panel
@@ -33,7 +31,11 @@ public class OperatingSystem {
     public OperatingSystem(oshi.software.os.OperatingSystem operatingSystem) {
         processes = new ArrayList<>();
         oldOSProcess = new HashMap<>();
-        for (OSProcess osProcess: operatingSystem.getProcesses(null, null, 0)){
+        List<OSProcess> list = operatingSystem.getProcesses(null, null, 0);
+        for (OSProcess osProcess: list){
+            if(osProcess.getProcessID() == 0){
+                continue;
+            }
             processes.add(new Process(osProcess));
             oldOSProcess.put(osProcess.getProcessID(), osProcess);
         }
@@ -52,7 +54,11 @@ public class OperatingSystem {
     public void refresh(oshi.software.os.OperatingSystem operatingSystem){
         processes.clear();
         Map<Integer, OSProcess> osProcessMap = new HashMap<>();
-        for (OSProcess osProcess: operatingSystem.getProcesses(null, null, 0)){
+        List<OSProcess> list = operatingSystem.getProcesses(null, null, 0);
+        for (OSProcess osProcess: list){
+            if(osProcess.getProcessID() == 0){
+                continue;
+            }
             Process process = new Process(osProcess);
             OSProcess proc = oldOSProcess.get(osProcess.getProcessID());
             process.caculateCpuTicks(proc);
@@ -60,7 +66,7 @@ public class OperatingSystem {
             osProcessMap.put(osProcess.getProcessID(), osProcess);
         }
         oldOSProcess.clear();
-        oldOSProcess.putAll(osProcessMap);
+        oldOSProcess = osProcessMap;
         // os and hw panel
         upTime = FormatUtil.formatElapsedSecs(operatingSystem.getSystemUptime());
     }
@@ -77,8 +83,12 @@ public class OperatingSystem {
                     return o2.getProcessCumulative() > o1.getProcessCumulative() ? 1 :
                             o2.getProcessCumulative() < o1.getProcessCumulative() ? -1 : 0;
                 }
-                return o2.getResidentSetSize() > o1.getResidentSetSize() ? 1 :
-                        o2.getResidentSetSize() < o1.getResidentSetSize() ? -1 : 0;
+                if(sortBy == sortByMemory){
+                    return o2.getResidentSetSize() > o1.getResidentSetSize() ? 1 :
+                            o2.getResidentSetSize() < o1.getResidentSetSize() ? -1 : 0;
+                }
+                return o2.getName().compareTo(o1.getName()) < 0 ? 1 :
+                        o2.getName().compareTo(o1.getName()) >= 0 ? -1 : 0;
             }
         });
     }

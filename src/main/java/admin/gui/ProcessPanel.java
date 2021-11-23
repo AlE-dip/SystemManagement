@@ -35,6 +35,10 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,9 +69,13 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
     private transient JRadioButton cpuButton = new JRadioButton("CPU %");
     private transient JRadioButton cumulativeCpuButton = new JRadioButton("Cumulative CPU");
     private transient JRadioButton memButton = new JRadioButton("Memory %");
+    private transient JRadioButton nameButton = new JRadioButton("Name");
 
     private TableModel model;
     private JTable procTable;
+    private JButton btEndTask;
+    private JLabel lbPid;
+
 
     public ProcessPanel() {
         super();
@@ -80,6 +88,21 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
         add(procLabel, BorderLayout.NORTH);
 
         JPanel settings = new JPanel();
+
+        btEndTask = new JButton("End taks");
+        btEndTask.setVisible(true);
+        btEndTask.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!lbPid.getText().equals("0")){
+                    System.out.println(lbPid.getText());
+                    lbPid.setText("0");
+                }
+            }
+        });
+        settings.add(btEndTask);
+        lbPid = new JLabel("0");
+        settings.add(lbPid);
 
         JLabel cpuChoice = new JLabel("          CPU %:");
         settings.add(cpuChoice);
@@ -103,13 +126,26 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
         settings.add(cumulativeCpuButton);
         sortOption.add(memButton);
         settings.add(memButton);
+        sortOption.add(nameButton);
+        settings.add(nameButton);
         cpuButton.setSelected(true);
 
         //model = new DefaultTableModel(null, COLUMNS);//parseProcesses(os.getProcesses(null, null, 0), si), COLUMNS
         procTable = new JTable();
+        procTable.setRowSelectionAllowed(true);
+        procTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                int row = procTable.getSelectedRow();
+                DefaultTableModel model = (DefaultTableModel) procTable.getModel();
+                int pid = (int) model.getValueAt(row, 0);
+                lbPid.setText(pid + "");
+            }
+        });
         JScrollPane scrollV = new JScrollPane(procTable);
         scrollV.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        resizeColumns(procTable.getColumnModel());
+        //resizeColumns(procTable.getColumnModel());
 
         add(scrollV, BorderLayout.CENTER);
         add(settings, BorderLayout.SOUTH);
@@ -160,8 +196,10 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
             operatingSystem.sort(OperatingSystem.sortByCpu);
         } else if (cumulativeCpuButton.isSelected()) {
             operatingSystem.sort(OperatingSystem.sortByCumulative);
-        } else {
+        } else if(memButton.isSelected()){
             operatingSystem.sort(OperatingSystem.sortByMemory);
+        }else {
+            operatingSystem.sort(OperatingSystem.sortByName);
         }
         // Now sort the list by the values
 //        List<Entry<OSProcess, Double>> procList = new ArrayList<>(processSortValueMap.entrySet());
@@ -178,13 +216,11 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
             procArr[i][1] = p.getParentProcessId();
             procArr[i][2] = p.getThreadCount();
             if (perProc.isSelected()) {
-                procArr[i][3] = String.format("%.1f",
-                        100d * p.getProcessCpuLoad() / cpuCount);
-                procArr[i][4] = String.format("%.1f", 100d * p.getProcessCumulative() / cpuCount);
+                procArr[i][3] = String.format("%.1f", p.getProcessCpuLoad() / cpuCount);
+                procArr[i][4] = String.format("%.1f", p.getProcessCumulative() / cpuCount);
             } else {
-                procArr[i][3] = String.format("%.1f",
-                        100d * p.getProcessCpuLoad());
-                procArr[i][4] = String.format("%.1f", 100d * p.getProcessCumulative());
+                procArr[i][3] = String.format("%.1f", p.getProcessCpuLoad());
+                procArr[i][4] = String.format("%.1f", p.getProcessCumulative());
             }
             procArr[i][5] = FormatUtil.formatBytes(p.getVirtualSize());
             procArr[i][6] = FormatUtil.formatBytes(p.getResidentSetSize());
@@ -213,6 +249,7 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
     public void create(SystemInfo systemInfo){
         model = new DefaultTableModel(parseProcesses(systemInfo.getOperatingSystem(), systemInfo), COLUMNS);
         procTable.setModel(model);
+        resizeColumns(procTable.getColumnModel());
     }
 
     public void refresh(SystemInfo systemInfo){
