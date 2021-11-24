@@ -5,6 +5,7 @@ import core.Core;
 import core.Session;
 import core.UtilContent;
 import core.model.Action;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -26,7 +27,11 @@ public class ServerSession extends Session {
         sendRequest(UtilContent.createConnectCamera);
     }
 
-    public void sendRequest(String stringAction){
+    public void createConnectScreens() throws IOException {
+        sendRequest(UtilContent.createConnectScreens);
+    }
+
+    public void sendRequest(String stringAction) {
         try {
             Core.writeString(writerConnect, stringAction);
         } catch (IOException e) {
@@ -37,12 +42,14 @@ public class ServerSession extends Session {
     @Override
     public void run() {
         super.run();
-        while (true){
+        while (true) {
             try {
                 String stringAction = readerConnect.readLine();
-                if(stringAction.equals(UtilContent.stopCamera)){
+                if (stringAction.equals(UtilContent.stopCamera)) {
                     Server.forwarder.resetCamera();
-                }else {
+                } else if (stringAction.equals(UtilContent.stopScreens)) {
+                    Server.forwarder.resetScreens();
+                } else {
                     Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
                     switch (action.getAction()) {
                         case UtilContent.disconnect: {
@@ -57,13 +64,11 @@ public class ServerSession extends Session {
             } catch (IOException e) {
                 e.printStackTrace();
                 System.out.println("Disconnect " + role + "... error!");
-                Server.forwarder.threadSystemInfo.interrupt();
-                if (role.equals(UtilContent.admin)){
+                if (role.equals(UtilContent.admin)) {
                     Server.forwarder.disconnectWithAdmin();
-                }else {
+                } else {
                     Server.forwarder.disconnectWithClient(getId());
                 }
-
                 break;
             }
         }

@@ -13,6 +13,7 @@ public class UtilContent {
     public static final String firstClient = "firstClient";
     public static final String createConnectSystemInfo = "createConnectSystemInfo";
     public static final String createConnectCamera = "createConnectCamera";
+    public static final String createConnectScreens = "createConnectScreens";
     public static final String reset = "reset";
     public static final int timeCamera = 10;
     public static final int timeSystemInfo = 1000;
@@ -23,6 +24,7 @@ public class UtilContent {
     public static final String changeCurrent = "changeCurrent";//trường hợp thay đổi client từ admin
     public static final String newClientConnect = "newClientConnect";//trường hợp client và admin gửi dữ liệu
     public static final String stopCamera = "stopCamera";
+    public static final String stopScreens = "stopScreens";
     public static final String listId = "listId";
     public static final String current = "current";
 }

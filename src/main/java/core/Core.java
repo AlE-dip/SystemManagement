@@ -111,4 +111,19 @@ public class Core {
         return op.filter(image, null);
     }
 
+    public static void paintCursor(BufferedImage image) throws IOException {
+        Image cursor = ImageIO.read(new File("image\\cursor.png"));
+        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = dimension.width;
+        int height = dimension.height;
+        double x = MouseInfo.getPointerInfo().getLocation().x;
+        double y = MouseInfo.getPointerInfo().getLocation().y;
+        double cx = x / width;
+        double cy = y / height;
+        Graphics2D graphics2D = image.createGraphics();
+        int w = image.getWidth();
+        int h = image.getHeight();
+        graphics2D.drawImage(cursor, (int)(cx * w), (int)(cy * h), 16, 16, null);
+    }
+
 }

@@ -13,7 +13,7 @@ public class Session extends Thread {
     protected String role;
     protected Socket skConnect;
     protected Socket skSystemInfo;
-    protected Socket skImage;
+    protected Socket skScreens;
     protected Socket skEvent;
     protected Socket skCamera;
     protected BufferedReader readerConnect;
@@ -22,8 +22,8 @@ public class Session extends Thread {
     protected BufferedWriter writerSystemInfo;
     protected BufferedReader readerEvent;
     protected BufferedWriter writerEvent;
-    protected BufferedReader readerImage;
-    protected BufferedWriter writerImage;
+    protected BufferedReader readerScreens;
+    protected BufferedWriter writerScreens;
     protected BufferedReader readerCamera;
     protected BufferedWriter writerCamera;
 
@@ -71,6 +71,11 @@ public class Session extends Thread {
         writerCamera = new BufferedWriter(new OutputStreamWriter(skCamera.getOutputStream()));
     }
 
+    public void createBufferedScreens() throws IOException {
+        readerScreens = new BufferedReader(new InputStreamReader(skScreens.getInputStream()));
+        writerScreens = new BufferedWriter(new OutputStreamWriter(skScreens.getOutputStream()));
+    }
+
     @Override
     public void interrupt() {
         super.interrupt();
@@ -92,9 +97,9 @@ public class Session extends Thread {
                 skEvent.close();
                 skEvent = null;
             }
-            if (skImage != null && !skImage.isClosed()) {
-                skImage.close();
-                skImage = null;
+            if (skScreens != null && !skScreens.isClosed()) {
+                skScreens.close();
+                skScreens = null;
             }
             if (skCamera != null && !skCamera.isClosed()) {
                 skCamera.close();
@@ -110,9 +115,9 @@ public class Session extends Thread {
             skEvent.close();
             skEvent = null;
         }
-        if (skImage != null && !skImage.isClosed()) {
-            skImage.close();
-            skImage = null;
+        if (skScreens != null && !skScreens.isClosed()) {
+            skScreens.close();
+            skScreens = null;
         }
         if (skCamera != null && !skCamera.isClosed()) {
             skCamera.close();
@@ -125,6 +130,17 @@ public class Session extends Thread {
             if (skCamera != null && !skCamera.isClosed()) {
                 skCamera.close();
                 skCamera = null;
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void resetScreens() {
+        try {
+            if (skScreens != null && !skScreens.isClosed()) {
+                skScreens.close();
+                skScreens = null;
             }
         }catch (IOException e){
             e.printStackTrace();
@@ -147,12 +163,12 @@ public class Session extends Thread {
         this.skSystemInfo = skSystemInfo;
     }
 
-    public Socket getSkImage() {
-        return skImage;
+    public Socket getSkScreens() {
+        return skScreens;
     }
 
-    public void setSkImage(Socket skImage) {
-        this.skImage = skImage;
+    public void setSkScreens(Socket skScreens) {
+        this.skScreens = skScreens;
     }
 
     public Socket getSkEvent() {
@@ -227,20 +243,20 @@ public class Session extends Thread {
         this.skCamera = skCamera;
     }
 
-    public BufferedReader getReaderImage() {
-        return readerImage;
+    public BufferedReader getReaderScreens() {
+        return readerScreens;
     }
 
-    public void setReaderImage(BufferedReader readerImage) {
-        this.readerImage = readerImage;
+    public void setReaderScreens(BufferedReader readerScreens) {
+        this.readerScreens = readerScreens;
     }
 
-    public BufferedWriter getWriterImage() {
-        return writerImage;
+    public BufferedWriter getWriterScreens() {
+        return writerScreens;
     }
 
-    public void setWriterImage(BufferedWriter writerImage) {
-        this.writerImage = writerImage;
+    public void setWriterScreens(BufferedWriter writerScreens) {
+        this.writerScreens = writerScreens;
     }
 
     public BufferedReader getReaderCamera() {

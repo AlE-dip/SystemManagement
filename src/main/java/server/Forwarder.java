@@ -43,6 +43,12 @@ public class Forwarder {
         }
     }
 
+    public void createConnectScreens() throws IOException {
+        if(clientServer != null && clientServer.getSkScreens() == null){
+            clientServer.createConnectScreens();
+        }
+    }
+
     public void runSystemInfo() throws IOException {
         if (adminServer == null || clientServer == null || adminServer.getSkSystemInfo() == null || clientServer.getSkSystemInfo() == null) {
             return;
@@ -115,6 +121,13 @@ public class Forwarder {
         forwardUtil(adminServer.getWriterCamera(), clientServer.getReaderCamera(), "Camera");
     }
 
+    public void runScreens() throws IOException {
+        if (adminServer == null || clientServer == null || adminServer.getSkSystemInfo() == null || clientServer.getSkSystemInfo() == null) {
+            return;
+        }
+        forwardUtil(adminServer.getWriterScreens(), clientServer.getReaderScreens(), "Screens");
+    }
+
     public ServerSession firstOrNonClient() {
         if (!mapWork.isEmpty()) {
             Map.Entry<Long, ServerSession> entry = mapWork.entrySet().iterator().next();
@@ -170,7 +183,7 @@ public class Forwarder {
     }
 
     public void forwardUtil(BufferedWriter writerAdmin, BufferedReader readerClient, String type) throws IOException {
-        threadSystemInfo = new Thread(new Runnable() {
+        Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true) {
@@ -193,7 +206,7 @@ public class Forwarder {
                 }
             }
         });
-        threadSystemInfo.start();
+        thread.start();
     }
 
     public void forwardDebug(BufferedWriter writerAdmin, BufferedReader readerClient, String type) throws IOException {
@@ -227,7 +240,12 @@ public class Forwarder {
         clientServer.sendRequest(UtilContent.stopCamera);
         clientServer.resetCamera();
         adminServer.resetCamera();
+    }
 
+    public void resetScreens(){
+        clientServer.sendRequest(UtilContent.stopScreens);
+        clientServer.resetScreens();
+        adminServer.resetScreens();
     }
 
     //xóa admin, tạm dùng client

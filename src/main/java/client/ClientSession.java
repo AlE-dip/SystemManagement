@@ -11,6 +11,8 @@ import core.system.SystemInfo;
 import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -50,6 +52,15 @@ public class ClientSession extends Session {
         Core.writeString(writerCamera, stringAction);
     }
 
+    private void createConnectScreens() throws IOException {
+        skScreens = new Socket(UtilContent.address, UtilContent.port);
+        createBufferedScreens();
+        Action action = new Action(UtilContent.createConnectScreens, id);
+        String stringAction = new ObjectMapper().writeValueAsString(action);
+        Core.writeString(writerScreens, stringAction);
+    }
+
+
     public void sendSystemInfo(BufferedWriter writer, BufferedReader reader) throws IOException {
         oshi.SystemInfo si = new oshi.SystemInfo();
         SystemInfo systemInfo = new SystemInfo(si);
@@ -57,27 +68,27 @@ public class ClientSession extends Session {
         threadSystemInfo = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true){
+                while (true) {
                     try {
                         systemInfo.refresh();
                         String dataSystem = mapper.writeValueAsString(systemInfo);
                         Core.writeString(writer, dataSystem);
 
                         String feedback = reader.readLine();
-                        if (feedback.equals(UtilContent.continues)){
+                        if (feedback.equals(UtilContent.continues)) {
                             Thread.sleep(UtilContent.timeSystemInfo);
                         }
                     } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
                         System.out.println("SystemInfo stopped.");
-                        break;
+                        return;
                     }
                 }
             }
         });
 
         String wait = reader.readLine();
-        if(wait.equals(UtilContent.systemForwardReady)){
+        if (wait.equals(UtilContent.systemForwardReady)) {
             threadSystemInfo.start();
         }
     }
@@ -90,7 +101,7 @@ public class ClientSession extends Session {
             @Override
             public void run() {
                 System.out.println("Camera start...");
-                while (true){
+                while (true) {
                     try {
                         videoCapture.read(frame);
                         StringMat stringMat = new StringMat(frame);
@@ -101,7 +112,7 @@ public class ClientSession extends Session {
 
                     } catch (InterruptedException | IOException e) {
                         e.printStackTrace();
-                        if(videoCapture.isOpened()){
+                        if (videoCapture.isOpened()) {
                             videoCapture.release();
                         }
                         System.out.println("Camera stop...");
@@ -113,14 +124,47 @@ public class ClientSession extends Session {
         thread.start();
     }
 
+    public void screensStart(BufferedWriter writer) {
+        try {
+            Robot robot = new Robot();
+            Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    System.out.println("Record start...");
+                    while (true) {
+                        BufferedImage screenshot = robot.createScreenCapture(screenRect);
+                        try {
+                            Core.paintCursor(screenshot);
+                            Mat mat = Core.bufferedImageToMat(screenshot);
+                            StringMat stringMat = new StringMat(mat);
+                            String dataScreens = new ObjectMapper().writeValueAsString(stringMat);
+                            Core.writeString(writer, dataScreens);
+
+                            TimeUnit.MICROSECONDS.sleep(10);
+                        } catch (IOException | InterruptedException e) {
+                            e.printStackTrace();
+                            System.out.println("Screens record stop.");
+                            return;
+                        }
+                    }
+                }
+            });
+            thread.start();
+        } catch (AWTException e) {
+            e.printStackTrace();
+            System.out.println("Can not create robot!");
+        }
+    }
+
     @Override
     public void run() {
         super.run();
         System.out.println("Client start...");
         try {
-            while (true){
+            while (true) {
                 String stringAction = readerConnect.readLine();
-                if(stringAction.equals(UtilContent.createConnectSystemInfo)){
+                if (stringAction.equals(UtilContent.createConnectSystemInfo)) {
                     createConnectSystemInfo();
                     System.out.println("SystemInfo running...");
                 } else if (stringAction.equals(UtilContent.reset)) {
@@ -130,8 +174,13 @@ public class ClientSession extends Session {
                 } else if (stringAction.equals(UtilContent.createConnectCamera)) {
                     createConnectCamera();
                     cameraStart(writerCamera);
-                }else if(stringAction.equals(UtilContent.stopCamera)) {
+                } else if (stringAction.equals(UtilContent.stopCamera)) {
                     resetCamera();
+                } else if (stringAction.equals(UtilContent.createConnectScreens)) {
+                    createConnectScreens();
+                    screensStart(writerScreens);
+                } else if (stringAction.equals(UtilContent.stopScreens)) {
+                    resetScreens();
                 } else {
 //                    Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
 //                    switch (action.getAction()){

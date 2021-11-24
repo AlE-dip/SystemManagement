@@ -32,6 +32,7 @@ public class Server {
 
                 String stringAction = reader.readLine();
                 if(stringAction.equals(UtilContent.admin)){
+                    //Trường hợp admin connect
                     ServerSession session = new ServerSession(socket);
                     session.setWriterConnect(writer);
                     session.setReaderConnect(reader);
@@ -41,6 +42,7 @@ public class Server {
                     forwarder.setAdminServer(session);
                     forwarder.createConnectSystemInfo();
                 }else if (stringAction.equals(UtilContent.client)){
+                    //Trường hợp client connect
                     String hostName = reader.readLine();
                     ServerSession session = new ServerSession(socket);
                     session.clientHostName = hostName;
@@ -55,6 +57,7 @@ public class Server {
                         forwarder.createConnectSystemInfoWithThisClient(session);
                     }
                 }else {
+                    //Trường hợp tạo các socket truyền dữ liệu
                     Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
                     if(forwarder.getAdminServer().getId() == Long.parseLong((String) action.getData())){
                         setSocketAndRun(socket, writer, reader, forwarder.getAdminServer(), action.getAction());
@@ -91,6 +94,13 @@ public class Server {
                 forwarder.createConnectCamera();
                 forwarder.runCamera();
                 break;
+            }
+            case UtilContent.createConnectScreens: {
+                serverSession.setSkScreens(socket);
+                serverSession.setWriterScreens(writer);
+                serverSession.setReaderScreens(reader);
+                forwarder.createConnectScreens();
+                forwarder.runScreens();
             }
         }
     }

@@ -38,6 +38,17 @@ public class CameraPanel extends Component {
         });
     }
 
+    public void reset(){
+        lbCamera.setIcon(null);
+        lbCamera.setText("Close");
+        btCamera.setEnabled(false);
+        btCamera.setText("Run");
+    }
+
+    public void create(){
+        btCamera.setEnabled(true);
+    }
+
     public interface Camera{
         public void runCamera();
         public void stopCamera();

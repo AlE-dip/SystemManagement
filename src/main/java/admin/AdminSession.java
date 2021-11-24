@@ -2,6 +2,7 @@ package admin;
 
 import admin.gui.AdminGui;
 import admin.gui.CameraPanel;
+import admin.gui.ScreensPanel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import core.Core;
@@ -17,9 +18,8 @@ import org.opencv.highgui.HighGui;
 import org.opencv.imgproc.Imgproc;
 
 import javax.swing.*;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -85,6 +85,24 @@ public class AdminSession extends Session {
                 resetCamera();
             }
         });
+
+        //set sự kiện click button screens
+        gui.screensPanel.setEventButton(new ScreensPanel.Screens() {
+            @Override
+            public void runScreens() {
+                try {
+                    createConnectScreens();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void stopScreens() {
+                sendRequest(UtilContent.stopScreens);
+                resetScreens();
+            }
+        });
     }
 
     private void createConnectCamera() throws IOException {
@@ -94,6 +112,15 @@ public class AdminSession extends Session {
         String stringAction = new ObjectMapper().writeValueAsString(action);
         Core.writeString(writerCamera, stringAction);
         cameraObserver(readerCamera);
+    }
+
+    private void createConnectScreens() throws IOException {
+        skScreens = new Socket(UtilContent.address, UtilContent.port);
+        createBufferedScreens();
+        Action action = new Action(UtilContent.createConnectScreens, id);
+        String stringAction = new ObjectMapper().writeValueAsString(action);
+        Core.writeString(writerScreens, stringAction);
+        screensObserver(readerScreens);
     }
 
     public void receiveSystemInfo(BufferedWriter writer, BufferedReader reader) throws IOException {
@@ -140,14 +167,24 @@ public class AdminSession extends Session {
                 while (true){
                     try {
                         String dataCamera = reader.readLine();
-                        StringMat stringMat = new ObjectMapper().readerFor(StringMat.class).readValue(dataCamera);
-                        Mat image = stringMat.toMat();
-                        //System.out.println(image.cols() + ": " + image.rows());
-                        int width = gui.cameraPanel.lbCamera.getHeight();
-                        Core.resizeBasedOnWidth(image, width);
+                        Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    StringMat stringMat = new ObjectMapper().readerFor(StringMat.class).readValue(dataCamera);
+                                    Mat image = stringMat.toMat();
+                                    //System.out.println(image.cols() + ": " + image.rows());
+                                    int width = gui.cameraPanel.lbCamera.getWidth();
+                                    Core.resizeBasedOnWidth(image, width);
 
-                        gui.cameraPanel.refresh(new ImageIcon(HighGui.toBufferedImage(image)));
-                        //label.setIcon(new ImageIcon(HighGui.toBufferedImage(image)));
+                                    gui.cameraPanel.refresh(new ImageIcon(HighGui.toBufferedImage(image)));
+                                    //label.setIcon(new ImageIcon(HighGui.toBufferedImage(image)));
+                                } catch (JsonProcessingException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                        thread.start();
                     } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println("Camera.observer stop!");
@@ -158,6 +195,41 @@ public class AdminSession extends Session {
             }
         });
         camera.start();
+    }
+
+    public void screensObserver(BufferedReader reader) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("Screenshot.observer running...");
+                while (true){
+                    try {
+                        String dataScreens = reader.readLine();
+                        Thread thread1 = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    StringMat stringMat = new ObjectMapper().readerFor(StringMat.class).readValue(dataScreens);
+                                    Mat image = stringMat.toMat();
+                                    int width = gui.screensPanel.lbScreens.getWidth();
+                                    Core.resizeBasedOnWidth(image, width);
+                                    gui.screensPanel.refresh(new ImageIcon(HighGui.toBufferedImage(image)));
+                                } catch (JsonProcessingException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                        thread1.start();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        gui.screensPanel.lbScreens.setIcon(null);
+                        System.out.println("Screenshot.observer stop!");
+                        return;
+                    }
+                }
+            }
+        });
+        thread.start();
     }
 
     public void sendRequest(String stringAction){
