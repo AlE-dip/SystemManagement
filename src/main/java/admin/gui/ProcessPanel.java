@@ -23,10 +23,10 @@
  */
 package admin.gui;
 
+import core.system.OperatingSystem;
+import core.system.Process;
+import core.system.SystemInfo;
 import oshi.PlatformEnum;
-import oshi.SystemInfo;
-import oshi.software.os.OSProcess;
-import oshi.software.os.OperatingSystem;
 import oshi.util.FormatUtil;
 
 import javax.swing.*;
@@ -35,6 +35,10 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +59,7 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
             "Process Name" };
     private static final double[] COLUMN_WIDTH_PERCENT = { 0.07, 0.07, 0.07, 0.07, 0.09, 0.1, 0.1, 0.08, 0.35 };
 
-    private transient Map<Integer, OSProcess> priorSnapshotMap = new HashMap<>();
+    //private transient Map<Integer, OSProcess> priorSnapshotMap = new HashMap<>();
 
     private transient ButtonGroup cpuOption = new ButtonGroup();
     private transient JRadioButton perProc = new JRadioButton("of one Processor");
@@ -65,18 +69,40 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
     private transient JRadioButton cpuButton = new JRadioButton("CPU %");
     private transient JRadioButton cumulativeCpuButton = new JRadioButton("Cumulative CPU");
     private transient JRadioButton memButton = new JRadioButton("Memory %");
+    private transient JRadioButton nameButton = new JRadioButton("Name");
 
-    public ProcessPanel(SystemInfo si) {
+    private TableModel model;
+    private JTable procTable;
+    private JButton btEndTask;
+    private JLabel lbPid;
+
+
+    public ProcessPanel() {
         super();
-        init(si);
+        init();
     }
 
-    private void init(SystemInfo si) {
-        OperatingSystem os = si.getOperatingSystem();
+    private void init(/*SystemInfo si*/) {
+        //OperatingSystem os = si.getOperatingSystem();
         JLabel procLabel = new JLabel(PROCESSES);
         add(procLabel, BorderLayout.NORTH);
 
         JPanel settings = new JPanel();
+
+        btEndTask = new JButton("End taks");
+        btEndTask.setVisible(true);
+        btEndTask.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!lbPid.getText().equals("0")){
+                    System.out.println(lbPid.getText());
+                    lbPid.setText("0");
+                }
+            }
+        });
+        settings.add(btEndTask);
+        lbPid = new JLabel("0");
+        settings.add(lbPid);
 
         JLabel cpuChoice = new JLabel("          CPU %:");
         settings.add(cpuChoice);
@@ -84,11 +110,13 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
         settings.add(perProc);
         cpuOption.add(perSystem);
         settings.add(perSystem);
-        if (SystemInfo.getCurrentPlatform().equals(PlatformEnum.WINDOWS)) {
-            perSystem.setSelected(true);
-        } else {
-            perProc.setSelected(true);
-        }
+
+        perSystem.setSelected(true);
+//        if (SystemInfo.getCurrentPlatform().equals(PlatformEnum.WINDOWS)) {
+//            perSystem.setSelected(true);
+//        } else {
+//            perProc.setSelected(true);
+//        }
 
         JLabel sortChoice = new JLabel("          Sort by:");
         settings.add(sortChoice);
@@ -98,82 +126,101 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
         settings.add(cumulativeCpuButton);
         sortOption.add(memButton);
         settings.add(memButton);
+        sortOption.add(nameButton);
+        settings.add(nameButton);
         cpuButton.setSelected(true);
 
-        TableModel model = new DefaultTableModel(parseProcesses(os.getProcesses(null, null, 0), si), COLUMNS);
-        JTable procTable = new JTable(model);
+        //model = new DefaultTableModel(null, COLUMNS);//parseProcesses(os.getProcesses(null, null, 0), si), COLUMNS
+        procTable = new JTable();
+        procTable.setRowSelectionAllowed(true);
+        procTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                int row = procTable.getSelectedRow();
+                DefaultTableModel model = (DefaultTableModel) procTable.getModel();
+                int pid = (int) model.getValueAt(row, 0);
+                lbPid.setText(pid + "");
+            }
+        });
         JScrollPane scrollV = new JScrollPane(procTable);
         scrollV.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        resizeColumns(procTable.getColumnModel());
+        //resizeColumns(procTable.getColumnModel());
 
         add(scrollV, BorderLayout.CENTER);
         add(settings, BorderLayout.SOUTH);
 
-        Timer timer = new Timer(Config.REFRESH_SLOW, e -> {
-            DefaultTableModel tableModel = (DefaultTableModel) procTable.getModel();
-            Object[][] newData = parseProcesses(os.getProcesses(null, null, 0), si);
-            int rowCount = tableModel.getRowCount();
-            for (int row = 0; row < newData.length; row++) {
-                if (row < rowCount) {
-                    // Overwrite row
-                    for (int col = 0; col < newData[row].length; col++) {
-                        tableModel.setValueAt(newData[row][col], row, col);
-                    }
-                } else {
-                    // Add row
-                    tableModel.addRow(newData[row]);
-                }
-            }
-            // Delete any extra rows
-            for (int row = rowCount - 1; row >= newData.length; row--) {
-                tableModel.removeRow(row);
-            }
-        });
-        timer.start();
+//        Timer timer = new Timer(Config.REFRESH_SLOW, e -> {
+//            DefaultTableModel tableModel = (DefaultTableModel) procTable.getModel();
+//            Object[][] newData = parseProcesses(os.getProcesses(null, null, 0), si);
+//            int rowCount = tableModel.getRowCount();
+//            for (int row = 0; row < newData.length; row++) {
+//                if (row < rowCount) {
+//                    // Overwrite row
+//                    for (int col = 0; col < newData[row].length; col++) {
+//                        tableModel.setValueAt(newData[row][col], row, col);
+//                    }
+//                } else {
+//                    // Add row
+//                    tableModel.addRow(newData[row]);
+//                }
+//            }
+//            // Delete any extra rows
+//            for (int row = rowCount - 1; row >= newData.length; row--) {
+//                tableModel.removeRow(row);
+//            }
+//        });
+//        timer.start();
     }
 
-    private Object[][] parseProcesses(List<OSProcess> list, SystemInfo si) {
-        long totalMem = si.getHardware().getMemory().getTotal();
-        int cpuCount = si.getHardware().getProcessor().getLogicalProcessorCount();
+    private Object[][] parseProcesses(OperatingSystem operatingSystem, SystemInfo systemInfo) {
+        long totalMem = systemInfo.getMemory().getTotal();
+        int cpuCount = systemInfo.getProcessor().getLogicalProcessorCount();
         // Build a map with a value for each process to control the sort
-        Map<OSProcess, Double> processSortValueMap = new HashMap<>();
-        for (OSProcess p : list) {
-            int pid = p.getProcessID();
-            // Ignore the Idle process on Windows
-            if (pid > 0 || !SystemInfo.getCurrentPlatform().equals(PlatformEnum.WINDOWS)) {
-                // Set up for appropriate sort
-                if (cpuButton.isSelected()) {
-                    processSortValueMap.put(p, p.getProcessCpuLoadBetweenTicks(priorSnapshotMap.get(pid)));
-                } else if (cumulativeCpuButton.isSelected()) {
-                    processSortValueMap.put(p, p.getProcessCpuLoadCumulative());
-                } else {
-                    processSortValueMap.put(p, (double) p.getResidentSetSize());
-                }
-            }
+//        Map<OSProcess, Double> processSortValueMap = new HashMap<>();
+//        for (OSProcess p : list) {
+//            int pid = p.getProcessID();
+//            // Ignore the Idle process on Windows
+//            if (pid > 0 || !SystemInfo.getCurrentPlatform().equals(PlatformEnum.WINDOWS)) {
+//                // Set up for appropriate sort
+//                if (cpuButton.isSelected()) {
+//                    processSortValueMap.put(p, p.getProcessCpuLoadBetweenTicks(priorSnapshotMap.get(pid)));
+//                } else if (cumulativeCpuButton.isSelected()) {
+//                    processSortValueMap.put(p, p.getProcessCpuLoadCumulative());
+//                } else {
+//                    processSortValueMap.put(p, (double) p.getResidentSetSize());
+//                }
+//            }
+//        }
+        if (cpuButton.isSelected()) {
+            operatingSystem.sort(OperatingSystem.sortByCpu);
+        } else if (cumulativeCpuButton.isSelected()) {
+            operatingSystem.sort(OperatingSystem.sortByCumulative);
+        } else if(memButton.isSelected()){
+            operatingSystem.sort(OperatingSystem.sortByMemory);
+        }else {
+            operatingSystem.sort(OperatingSystem.sortByName);
         }
         // Now sort the list by the values
-        List<Entry<OSProcess, Double>> procList = new ArrayList<>(processSortValueMap.entrySet());
-        procList.sort(Entry.comparingByValue());
+//        List<Entry<OSProcess, Double>> procList = new ArrayList<>(processSortValueMap.entrySet());
+//        procList.sort(Entry.comparingByValue());
         // Insert into array in reverse order (lowest sort value last)
-        int i = procList.size();
-        Object[][] procArr = new Object[i][COLUMNS.length];
+        ArrayList<Process> processes = operatingSystem.getProcesses();
+        Object[][] procArr = new Object[processes.size()][COLUMNS.length];
         // These are in descending CPU order
-        for (Entry<OSProcess, Double> e : procList) {
-            OSProcess p = e.getKey();
+        for (int i = 0; i < processes.size(); i++) {
+            Process p = processes.get(i);
             // Matches order of COLUMNS field
-            i--;
-            int pid = p.getProcessID();
+            int pid = p.getPid();
             procArr[i][0] = pid;
-            procArr[i][1] = p.getParentProcessID();
+            procArr[i][1] = p.getParentProcessId();
             procArr[i][2] = p.getThreadCount();
             if (perProc.isSelected()) {
-                procArr[i][3] = String.format("%.1f",
-                        100d * p.getProcessCpuLoadBetweenTicks(priorSnapshotMap.get(pid)) / cpuCount);
-                procArr[i][4] = String.format("%.1f", 100d * p.getProcessCpuLoadCumulative() / cpuCount);
+                procArr[i][3] = String.format("%.1f", p.getProcessCpuLoad() / cpuCount);
+                procArr[i][4] = String.format("%.1f", p.getProcessCumulative() / cpuCount);
             } else {
-                procArr[i][3] = String.format("%.1f",
-                        100d * p.getProcessCpuLoadBetweenTicks(priorSnapshotMap.get(pid)));
-                procArr[i][4] = String.format("%.1f", 100d * p.getProcessCpuLoadCumulative());
+                procArr[i][3] = String.format("%.1f", p.getProcessCpuLoad());
+                procArr[i][4] = String.format("%.1f", p.getProcessCumulative());
             }
             procArr[i][5] = FormatUtil.formatBytes(p.getVirtualSize());
             procArr[i][6] = FormatUtil.formatBytes(p.getResidentSetSize());
@@ -181,10 +228,10 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
             procArr[i][8] = p.getName();
         }
         // Re-populate snapshot map
-        priorSnapshotMap.clear();
-        for (OSProcess p : list) {
-            priorSnapshotMap.put(p.getProcessID(), p);
-        }
+//        priorSnapshotMap.clear();
+//        for (OSProcess p : list) {
+//            priorSnapshotMap.put(p.getProcessID(), p);
+//        }
         return procArr;
     }
 
@@ -197,5 +244,36 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
             int pWidth = (int) Math.round(COLUMN_WIDTH_PERCENT[i] * tW);
             column.setPreferredWidth(pWidth);
         }
+    }
+
+    public void create(SystemInfo systemInfo){
+        model = new DefaultTableModel(parseProcesses(systemInfo.getOperatingSystem(), systemInfo), COLUMNS);
+        procTable.setModel(model);
+        resizeColumns(procTable.getColumnModel());
+    }
+
+    public void refresh(SystemInfo systemInfo){
+        DefaultTableModel tableModel = (DefaultTableModel) procTable.getModel();
+        Object[][] newData = parseProcesses(systemInfo.getOperatingSystem(), systemInfo);
+        int rowCount = tableModel.getRowCount();
+        for (int row = 0; row < newData.length; row++) {
+            if (row < rowCount) {
+                // Overwrite row
+                for (int col = 0; col < newData[row].length; col++) {
+                    tableModel.setValueAt(newData[row][col], row, col);
+                }
+            } else {
+                // Add row
+                tableModel.addRow(newData[row]);
+            }
+        }
+        // Delete any extra rows
+        for (int row = rowCount - 1; row >= newData.length; row--) {
+            tableModel.removeRow(row);
+        }
+    }
+
+    public void reset(){
+        procTable.removeAll();
     }
 }

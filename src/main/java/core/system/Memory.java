@@ -1,6 +1,9 @@
 package core.system;
 
 import oshi.hardware.GlobalMemory;
+import oshi.hardware.PhysicalMemory;
+
+import java.util.List;
 
 public class Memory {
 
@@ -9,6 +12,7 @@ public class Memory {
     private long available;
     private long use;
     private VirtualMemory virtualMemory;
+    private String physicalMemory;
 
     public Memory() {
         this.physicalTitle = "";
@@ -16,6 +20,7 @@ public class Memory {
         this.available = 0;
         this.use = 0;
         this.virtualMemory = null;
+        this.physicalMemory = "";
     }
 
     public Memory(GlobalMemory memory) {
@@ -24,6 +29,12 @@ public class Memory {
         available = memory.getAvailable();
         use = total - available;
         virtualMemory = new VirtualMemory(memory.getVirtualMemory());
+        StringBuilder sb = new StringBuilder();
+        List<PhysicalMemory> pmList = memory.getPhysicalMemory();
+        for (PhysicalMemory pm : pmList) {
+            sb.append('\n').append(pm.toString());
+        }
+        physicalMemory = sb.toString();
     }
 
     public void refresh(GlobalMemory memory) {
@@ -72,5 +83,13 @@ public class Memory {
 
     public void setVirtualMemory(VirtualMemory virtualMemory) {
         this.virtualMemory = virtualMemory;
+    }
+
+    public String getPhysicalMemory() {
+        return physicalMemory;
+    }
+
+    public void setPhysicalMemory(String physicalMemory) {
+        this.physicalMemory = physicalMemory;
     }
 }

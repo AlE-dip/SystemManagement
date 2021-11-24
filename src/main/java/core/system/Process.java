@@ -10,8 +10,8 @@ public class Process {
     private int threadCount;
     private double processCpuLoad;
     private double processCumulative;
-    private double virtualSize;
-    private double residentSetSize;
+    private long virtualSize;
+    private long residentSetSize;
     private String name;
     private OSProcess process;
 
@@ -30,8 +30,7 @@ public class Process {
         this.pid = process.getProcessID();
         this.parentProcessId = process.getParentProcessID();
         this.threadCount = process.getThreadCount();
-        this.processCpuLoad = 0;
-        this.processCumulative = process.getProcessCpuLoadCumulative();
+        this.processCumulative = 100d * process.getProcessCpuLoadCumulative();
         this.virtualSize = process.getVirtualSize();
         this.residentSetSize = process.getResidentSetSize();
         this.name = process.getName();
@@ -39,7 +38,7 @@ public class Process {
     }
 
     public void caculateCpuTicks(OSProcess oldProcess) {
-        this.processCpuLoad = process.getProcessCpuLoadBetweenTicks(oldProcess);
+        this.processCpuLoad = 100d * process.getProcessCpuLoadBetweenTicks(oldProcess);
     }
 
     public int getPid() {
@@ -82,19 +81,19 @@ public class Process {
         this.processCumulative = processCumulative;
     }
 
-    public double getVirtualSize() {
+    public long getVirtualSize() {
         return virtualSize;
     }
 
-    public void setVirtualSize(double virtualSize) {
+    public void setVirtualSize(long virtualSize) {
         this.virtualSize = virtualSize;
     }
 
-    public double getResidentSetSize() {
+    public long getResidentSetSize() {
         return residentSetSize;
     }
 
-    public void setResidentSetSize(double residentSetSize) {
+    public void setResidentSetSize(long residentSetSize) {
         this.residentSetSize = residentSetSize;
     }
 

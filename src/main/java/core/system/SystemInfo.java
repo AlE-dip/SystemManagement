@@ -51,7 +51,7 @@ public class SystemInfo {
         memory = new Memory(hardwareAbstractionLayer.getMemory());
         this.operatingSystem = new OperatingSystem(operatingSystem);
         processor = new Processor(hardwareAbstractionLayer.getProcessor());
-        network = new Network(operatingSystem.getNetworkParams(), hardwareAbstractionLayer.getNetworkIFs());
+        network = new Network(operatingSystem.getNetworkParams(), hardwareAbstractionLayer.getNetworkIFs(true));
     }
 
     public void refresh() {

@@ -9,6 +9,7 @@ public class Processor {
     private double[] procTicks;
     // os and hw panel
     private String infoProcessor;
+    private int logicalProcessorCount;
 
     public Processor() {
         this.oldTicks = null;
@@ -16,6 +17,7 @@ public class Processor {
         this.oldProcTicks = null;
         procTicks = null;
         infoProcessor = "";
+        logicalProcessorCount = 0;
     }
 
     public Processor(CentralProcessor cpu){
@@ -24,6 +26,7 @@ public class Processor {
         oldProcTicks = cpu.getProcessorCpuLoadTicks();
         procTicks = null;
         infoProcessor = cpu.toString();
+        logicalProcessorCount = cpu.getLogicalProcessorCount();
     }
 
     public void refresh(CentralProcessor cpu){
@@ -71,5 +74,13 @@ public class Processor {
 
     public void setInfoProcessor(String infoProcessor) {
         this.infoProcessor = infoProcessor;
+    }
+
+    public int getLogicalProcessorCount() {
+        return logicalProcessorCount;
+    }
+
+    public void setLogicalProcessorCount(int logicalProcessorCount) {
+        this.logicalProcessorCount = logicalProcessorCount;
     }
 }

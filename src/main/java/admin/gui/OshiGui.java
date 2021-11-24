@@ -71,12 +71,12 @@ public class OshiGui {
         jMenu = getJMenu("OS & HW Info", 'O', "Hardware & OS Summary", osHwTextPanel);
         menuBar.add(jMenu);
         // Add later menu items
-        menuBar.add(getJMenu("Memory", 'M', "Memory Summary", new MemoryPanel(si)));
-        menuBar.add(getJMenu("CPU", 'C', "CPU Usage", new ProcessorPanel(si)));
-        menuBar.add(getJMenu("FileStores", 'F', "FileStore Usage", new FileStorePanel(si)));
-        menuBar.add(getJMenu("Processes", 'P', "Processes", new ProcessPanel(si)));
+        menuBar.add(getJMenu("Memory", 'M', "Memory Summary", new MemoryPanel()));
+        menuBar.add(getJMenu("CPU", 'C', "CPU Usage", new ProcessorPanel()));
+        menuBar.add(getJMenu("FileStores", 'F', "FileStore Usage", new FileStorePanel()));
+        menuBar.add(getJMenu("Processes", 'P', "Processes", new ProcessPanel()));
         menuBar.add(getJMenu("USB Devices", 'U', "USB Device list", new UsbPanel(si)));
-        menuBar.add(getJMenu("Network", 'N', "Network Params and Interfaces", new InterfacePanel(si)));
+        menuBar.add(getJMenu("Network", 'N', "Network Params and Interfaces", new InterfacePanel()));
     }
 
     private JButton getJMenu(String title, char mnemonic, String toolTip, OshiJPanel panel) {
