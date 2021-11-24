@@ -38,7 +38,7 @@ public class Forwarder {
     }
 
     public void createConnectCamera() throws IOException {
-        if(clientServer.getSkCamera() == null){
+        if(clientServer != null && clientServer.getSkCamera() == null){
             clientServer.createConnectCamera();
         }
     }
@@ -144,7 +144,7 @@ public class Forwarder {
                         System.out.println("SystemInfo stop!");
                         break;
                     }
-                    System.out.println(dataSystem.length());
+                    //System.out.println(dataSystem.length());
                     String feedback = "";
                     try {
                         Core.writeString(writerAdmin, dataSystem);
@@ -170,6 +170,33 @@ public class Forwarder {
     }
 
     public void forwardUtil(BufferedWriter writerAdmin, BufferedReader readerClient, String type) throws IOException {
+        threadSystemInfo = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    String dataSystem = "";
+                    try {
+                        dataSystem = readerClient.readLine();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println(type + " stop!");
+                        break;
+                    }
+                    //System.out.println(dataSystem.length());
+                    try {
+                        Core.writeString(writerAdmin, dataSystem);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println(type + "stop!");
+                        return;
+                    }
+                }
+            }
+        });
+        threadSystemInfo.start();
+    }
+
+    public void forwardDebug(BufferedWriter writerAdmin, BufferedReader readerClient, String type) throws IOException {
         threadSystemInfo = new Thread(new Runnable() {
             @Override
             public void run() {

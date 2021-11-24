@@ -1,16 +1,11 @@
 package admin;
 
 import admin.gui.AdminGui;
-import admin.gui.OshiGui;
-import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.intellijthemes.FlatArcOrangeIJTheme;
-import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatArcDarkContrastIJTheme;
-import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatAtomOneLightContrastIJTheme;
-import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatSolarizedDarkContrastIJTheme;
 import core.UtilContent;
 import org.opencv.core.Core;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -33,7 +28,8 @@ public class Admin {
             //UIManager.setLookAndFeel(new FlatDarkLaf());
             //FlatArcOrangeIJTheme.setup();
             //FlatAtomOneLightContrastIJTheme.setup();
-            FlatArcDarkContrastIJTheme.setup();
+            FlatIntelliJLaf.setup();
+            //FlatArcOrangeIJTheme.setup();
         }catch(Exception e){
             e.printStackTrace();
         }

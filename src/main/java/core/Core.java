@@ -2,7 +2,9 @@ package core;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
+import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -21,6 +23,14 @@ public class Core {
         writer.write(string);
         writer.newLine();
         writer.flush();
+    }
+
+    public static void resizeBasedOnWidth(Mat image, int width){
+        float e = (float) (1.0 * width) / image.cols();
+        int w = (int) (e * image.rows());
+        int height = (int) (1.0 * width / image.cols() * image.rows());
+        Size size = new Size(width, height);
+        Imgproc.resize( image, image, size );
     }
 
 

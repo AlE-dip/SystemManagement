@@ -3,6 +3,7 @@ package admin.gui;
 import core.system.SystemInfo;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,6 +24,7 @@ public class AdminGui extends JFrame {
     private FileStorePanel fileStorePanel;
     private ProcessPanel processPanel;
     private InterfacePanel interfacePanel;
+    public CameraPanel cameraPanel;
     public boolean created;
     private SystemInfo systemInfo;
     private oshi.SystemInfo si;
@@ -53,15 +55,19 @@ public class AdminGui extends JFrame {
         fileStorePanel = new FileStorePanel();
         processPanel = new ProcessPanel();
         interfacePanel = new InterfacePanel();
+        cameraPanel = new CameraPanel();
         tpUser.addTab("OS & HW Info", null, osHwTextPanel, "O");
         tpUser.addTab("Memory", null, memoryPanel, "M");
         tpUser.addTab("CPU", null, processorPanel, "P");
         tpUser.addTab("FileStores", null, fileStorePanel, "F");
         tpUser.addTab("Processes", null, processPanel, "P");
         tpUser.addTab("Network", null, interfacePanel, "I");
+        tpUser.addTab("Camera", null, cameraPanel.createPanel(), "C");
 
         pnListUser = new JPanel(new GridLayout(10, 1, 1, 5));
         pnListUser.setVisible(true);
+        Border line = BorderFactory.createLineBorder(Color.LIGHT_GRAY);
+        pnListUser.setBorder(line);
         add(pnListUser, BorderLayout.WEST);
     }
 
@@ -93,7 +99,9 @@ public class AdminGui extends JFrame {
         jButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                guiAction.changeCurrentUser(id);
+                if(!id.equals(currentUser)){
+                    guiAction.changeCurrentUser(id);
+                }
             }
         });
     }

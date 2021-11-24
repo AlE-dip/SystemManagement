@@ -14,7 +14,7 @@ public class UtilContent {
     public static final String createConnectSystemInfo = "createConnectSystemInfo";
     public static final String createConnectCamera = "createConnectCamera";
     public static final String reset = "reset";
-    public static final int timeCamera = 5000;
+    public static final int timeCamera = 10;
     public static final int timeSystemInfo = 1000;
     public static final String address = "localhost";
     public static final int port = 50000;

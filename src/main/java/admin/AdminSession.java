@@ -1,6 +1,7 @@
 package admin;
 
 import admin.gui.AdminGui;
+import admin.gui.CameraPanel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import core.Core;
@@ -11,6 +12,11 @@ import core.model.Clients;
 import core.model.StringMat;
 import core.system.SystemInfo;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.highgui.HighGui;
+import org.opencv.imgproc.Imgproc;
+
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -37,6 +43,18 @@ public class AdminSession extends Session {
         createBufferedSystemInfo();
 
         //set action changeCurrent cho gui
+        setActionButtonForGui();
+
+        //Bắt đầu trao đổi systemInfo
+        Action action = new Action(UtilContent.createConnectSystemInfo, id);
+        String stringAction = new ObjectMapper().writeValueAsString(action);
+        Core.writeString(writerSystemInfo, stringAction);
+        receiveSystemInfo(writerSystemInfo, readerSystemInfo);
+        Core.writeString(writerSystemInfo, UtilContent.systemReceiveReady);
+    }
+
+    private void setActionButtonForGui() {
+        //thay đổi user khi click button user
         gui.guiAction = new AdminGui.GuiAction() {
             @Override
             public void changeCurrentUser(String id) {
@@ -50,12 +68,23 @@ public class AdminSession extends Session {
             }
         };
 
-        //Bắt đầu trao đổi systemInfo
-        Action action = new Action(UtilContent.createConnectSystemInfo, id);
-        String stringAction = new ObjectMapper().writeValueAsString(action);
-        Core.writeString(writerSystemInfo, stringAction);
-        receiveSystemInfo(writerSystemInfo, readerSystemInfo);
-        Core.writeString(writerSystemInfo, UtilContent.systemReceiveReady);
+        //set sự kiện click button camera
+        gui.cameraPanel.setEventButton(new CameraPanel.Camera() {
+            @Override
+            public void runCamera() {
+                try {
+                    createConnectCamera();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void stopCamera() {
+                sendRequest(UtilContent.stopCamera);
+                resetCamera();
+            }
+        });
     }
 
     private void createConnectCamera() throws IOException {
@@ -64,7 +93,7 @@ public class AdminSession extends Session {
         Action action = new Action(UtilContent.createConnectCamera, id);
         String stringAction = new ObjectMapper().writeValueAsString(action);
         Core.writeString(writerCamera, stringAction);
-        cameraObserver(readerCamera, writerCamera);
+        cameraObserver(readerCamera);
     }
 
     public void receiveSystemInfo(BufferedWriter writer, BufferedReader reader) throws IOException {
@@ -103,7 +132,7 @@ public class AdminSession extends Session {
         threadSystemInfo.start();
     }
 
-    public void cameraObserver(BufferedReader reader, BufferedWriter writer/*, JLabel label*/){
+    public void cameraObserver(BufferedReader reader){
         camera = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -113,12 +142,16 @@ public class AdminSession extends Session {
                         String dataCamera = reader.readLine();
                         StringMat stringMat = new ObjectMapper().readerFor(StringMat.class).readValue(dataCamera);
                         Mat image = stringMat.toMat();
-                        System.out.println(image.cols() + ": " + image.rows());
+                        //System.out.println(image.cols() + ": " + image.rows());
+                        int width = gui.cameraPanel.lbCamera.getHeight();
+                        Core.resizeBasedOnWidth(image, width);
 
+                        gui.cameraPanel.refresh(new ImageIcon(HighGui.toBufferedImage(image)));
                         //label.setIcon(new ImageIcon(HighGui.toBufferedImage(image)));
                     } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println("Camera.observer stop!");
+                        gui.cameraPanel.lbCamera.setIcon(null);
                         return;
                     }
                 }
