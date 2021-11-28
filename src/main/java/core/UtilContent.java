@@ -3,14 +3,12 @@ package core;
 public class UtilContent {
     public static final String admin = "admin";
     public static final String client = "client";
-    public static final String connected = "connected";
     public static final String systemForwardReady = "systemForwardReady";
     public static final String systemReceiveReady = "systemReceiveReady";
     public static final String stop = "stop";
     public static final String disconnect = "disconnect";
     public static final String stopSystemInfo = "stopSystemInfo";
     public static final String continues = "continues";
-    public static final String firstClient = "firstClient";
     public static final String createConnectSystemInfo = "createConnectSystemInfo";
     public static final String createConnectCamera = "createConnectCamera";
     public static final String createConnectScreens = "createConnectScreens";
@@ -27,4 +25,6 @@ public class UtilContent {
     public static final String stopScreens = "stopScreens";
     public static final String listId = "listId";
     public static final String current = "current";
+    public static final String killProcess = "killProcess";
+    public static final String shutdown = "shutdown";
 }

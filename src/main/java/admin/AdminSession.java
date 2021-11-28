@@ -2,6 +2,7 @@ package admin;
 
 import admin.gui.AdminGui;
 import admin.gui.CameraPanel;
+import admin.gui.HeaderOsHwPanel;
 import admin.gui.ScreensPanel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -101,6 +102,19 @@ public class AdminSession extends Session {
             public void stopScreens() {
                 sendRequest(UtilContent.stopScreens);
                 resetScreens();
+            }
+        });
+
+        //set sự kiện click shutdown va disconnect
+        gui.osHwTextPanel.headerOsHwPanel.setEventButton(new HeaderOsHwPanel.Control() {
+            @Override
+            public void disconnect() {
+
+            }
+
+            @Override
+            public void shutdown() {
+
             }
         });
     }

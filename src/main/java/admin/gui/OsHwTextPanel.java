@@ -55,6 +55,7 @@ public class OsHwTextPanel extends OshiJPanel { // NOSONAR squid:S110
     private JTextArea csArea;
     private JTextArea displayArea;
     private JTextArea procArea;
+    public HeaderOsHwPanel headerOsHwPanel;
 
     public OsHwTextPanel() {
         super();
@@ -110,6 +111,10 @@ public class OsHwTextPanel extends OshiJPanel { // NOSONAR squid:S110
         oshwPanel.add(csArea, csConstraints);
 
         add(oshwPanel, BorderLayout.CENTER);
+
+
+        headerOsHwPanel = new HeaderOsHwPanel();
+        add(headerOsHwPanel.createPanel(), BorderLayout.NORTH);
     }
 
     private static String getOsPrefix(SystemInfo si) {

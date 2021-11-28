@@ -44,7 +44,7 @@ public class ServerSession extends Session {
         super.run();
         while (true) {
             try {
-                String stringAction = readerConnect.readLine();
+                String stringAction = readerConnect.readLine(); ///{chat:{nguoiGui,nguoiNhan,tinNhan}}
                 if (stringAction.equals(UtilContent.stopCamera)) {
                     Server.forwarder.resetCamera();
                 } else if (stringAction.equals(UtilContent.stopScreens)) {

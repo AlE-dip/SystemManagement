@@ -18,7 +18,7 @@ public class AdminGui extends JFrame {
     private JTabbedPane tpUser;
     private JPanel pnListUser;
     //OshiGui
-    private OsHwTextPanel osHwTextPanel;
+    public OsHwTextPanel osHwTextPanel;
     private MemoryPanel memoryPanel;
     private ProcessorPanel processorPanel;
     private FileStorePanel fileStorePanel;
