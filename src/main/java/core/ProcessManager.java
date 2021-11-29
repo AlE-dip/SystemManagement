@@ -1,4 +1,4 @@
-package client;
+package core;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -26,12 +26,12 @@ public class ProcessManager {
         Runtime.getRuntime().exec("shutdown -s -t 0");
     }
 
-    public static void main(String[] args) throws Exception{
+    /*public static void main(String[] args) throws Exception{
         // Đọc danh sách tiến trình
         listProcess();
 
         //truyền vào tiến trình muốn kill
         //killProcess(999999999);
         //shutDown();
-    }
+    }*/
 }

@@ -14,6 +14,8 @@ public class ScreensPanel {
     }
 
     public JPanel createPanel(){
+        btScreens.setEnabled(false);
+        btControl.setEnabled(false);
         return pnMain;
     }
 

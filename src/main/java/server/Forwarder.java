@@ -30,22 +30,22 @@ public class Forwarder {
 
     public void createConnectSystemInfo() throws IOException {
         //Start admin
-        adminServer.createConnectSystemInfo();
+        adminServer.sendRequest(UtilContent.createConnectSystemInfo);
         clientServer = firstOrNonClient();
         if (clientServer != null) {
-            clientServer.createConnectSystemInfo();
+            clientServer.sendRequest(UtilContent.createConnectSystemInfo);
         }
     }
 
     public void createConnectCamera() throws IOException {
         if(clientServer != null && clientServer.getSkCamera() == null){
-            clientServer.createConnectCamera();
+            clientServer.sendRequest(UtilContent.createConnectCamera);
         }
     }
 
     public void createConnectScreens() throws IOException {
         if(clientServer != null && clientServer.getSkScreens() == null){
-            clientServer.createConnectScreens();
+            clientServer.sendRequest(UtilContent.createConnectScreens);
         }
     }
 
@@ -101,7 +101,7 @@ public class Forwarder {
         clientServer = mapWork.get(Long.parseLong(id));
         if(clientServer != null){
             adminServer.sendRequest(UtilContent.reset);
-            clientServer.createConnectSystemInfo();
+            clientServer.sendRequest(UtilContent.createConnectSystemInfo);
             runSystemInfo();
         }
     }
@@ -140,7 +140,7 @@ public class Forwarder {
 
     public void createConnectSystemInfoWithThisClient(ServerSession clientServer) throws IOException {
         this.clientServer = clientServer;
-        clientServer.createConnectSystemInfo();
+        clientServer.sendRequest(UtilContent.createConnectSystemInfo);
     }
 
     public void forwardSystemInfo(BufferedWriter writerAdmin, BufferedReader readerAdmin, BufferedWriter writerClient,
@@ -248,6 +248,18 @@ public class Forwarder {
         adminServer.resetScreens();
     }
 
+    public void disconnectClient(){
+        clientServer.sendRequest(UtilContent.disconnect);
+    }
+
+    public void shutDownClient(){
+        clientServer.sendRequest(UtilContent.shutdown);
+    }
+
+    public void killProcessClient(String stringAction){
+        clientServer.sendRequest(stringAction);
+    }
+
     //xóa admin, tạm dùng client
     public void disconnectWithAdmin() {
         adminServer.interrupt();
@@ -271,28 +283,25 @@ public class Forwarder {
     public void disconnectWithClient(long id) {
         mapWork.remove(id);
         System.out.println("Disconnect client " + id + "!!!");
-        if(clientServer.getId() == id){
-            //trường hợp mất connect với current client
-            clientServer.interrupt();
-            adminServer.sendRequest(UtilContent.reset);
-            clientServer = firstOrNonClient();
-            if (clientServer != null) {
-                try {
-                    clientServer.createConnectSystemInfo();
-                    runSystemInfo();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                System.out.println("Wait while client connect...");
-            }
-        }else {
-            //trường hợp mất connect với client khác
+        //trường hợp mất connect với current client
+        clientServer.interrupt();
+        adminServer.sendRequest(UtilContent.reset);
+        clientServer = firstOrNonClient();
+        if (clientServer != null) {
             try {
-                destroyClient(id + "");
+                clientServer.sendRequest(UtilContent.createConnectSystemInfo);
+                runSystemInfo();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            System.out.println("Wait while client connect...");
+        }
+        try {
+            destroyClient(id + "");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Can not send destroy action!");
         }
     }
 

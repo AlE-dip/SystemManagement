@@ -1,10 +1,7 @@
 package client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import core.Core;
-import core.Session;
-import core.SystemSR;
-import core.UtilContent;
+import core.*;
 import core.model.Action;
 import core.model.StringMat;
 import core.system.SystemInfo;
@@ -60,6 +57,28 @@ public class ClientSession extends Session {
         Core.writeString(writerScreens, stringAction);
     }
 
+    private void disconnect() {
+        interrupt();
+    }
+
+    private void shutdown() {
+        interrupt();
+        System.out.println("Shutdown");
+        /*try {
+            ProcessManager.shutDown();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
+    }
+
+    private void killProcess(String pid) {
+        System.out.println("Kill" + pid);
+        /*try {
+            ProcessManager.killProcess(Integer.parseInt(pid));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
+    }
 
     public void sendSystemInfo(BufferedWriter writer, BufferedReader reader) throws IOException {
         oshi.SystemInfo si = new oshi.SystemInfo();
@@ -181,11 +200,17 @@ public class ClientSession extends Session {
                     screensStart(writerScreens);
                 } else if (stringAction.equals(UtilContent.stopScreens)) {
                     resetScreens();
+                } else if (stringAction.equals(UtilContent.disconnect)){
+                    disconnect();
+                } else if (stringAction.equals(UtilContent.shutdown)) {
+                    shutdown();
                 } else {
-//                    Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
-//                    switch (action.getAction()){
-//
-//                    }
+                    Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
+                    switch (action.getAction()){
+                        case UtilContent.killProcess:{
+                            killProcess((String) action.getData());
+                        }
+                    }
                 }
 
             }

@@ -73,7 +73,7 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
 
     private TableModel model;
     private JTable procTable;
-    private JButton btEndTask;
+    public JButton btEndTask;
     private JLabel lbPid;
 
 
@@ -91,15 +91,7 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
 
         btEndTask = new JButton("End taks");
         btEndTask.setVisible(true);
-        btEndTask.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(!lbPid.getText().equals("0")){
-                    System.out.println(lbPid.getText());
-                    lbPid.setText("0");
-                }
-            }
-        });
+        btEndTask.setEnabled(false);
         settings.add(btEndTask);
         lbPid = new JLabel("0");
         settings.add(lbPid);
@@ -250,6 +242,7 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
         model = new DefaultTableModel(parseProcesses(systemInfo.getOperatingSystem(), systemInfo), COLUMNS);
         procTable.setModel(model);
         resizeColumns(procTable.getColumnModel());
+        btEndTask.setEnabled(true);
     }
 
     public void refresh(SystemInfo systemInfo){
@@ -274,6 +267,23 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
     }
 
     public void reset(){
+        btEndTask.setEnabled(false);
         procTable.removeAll();
+    }
+
+    public void setEventButton(ProcessManager processManager){
+        btEndTask.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!lbPid.getText().equals("0")){
+                    processManager.killProcess(lbPid.getText());
+                    lbPid.setText("0");
+                }
+            }
+        });
+    }
+
+    public interface ProcessManager {
+        public void killProcess(String pid);
     }
 }

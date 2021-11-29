@@ -19,18 +19,6 @@ public class ServerSession extends Session {
         Core.writeString(writerConnect, getId() + "");
     }
 
-    public void createConnectSystemInfo() throws IOException {
-        sendRequest(UtilContent.createConnectSystemInfo);
-    }
-
-    public void createConnectCamera() throws IOException {
-        sendRequest(UtilContent.createConnectCamera);
-    }
-
-    public void createConnectScreens() throws IOException {
-        sendRequest(UtilContent.createConnectScreens);
-    }
-
     public void sendRequest(String stringAction) {
         try {
             Core.writeString(writerConnect, stringAction);
@@ -49,6 +37,10 @@ public class ServerSession extends Session {
                     Server.forwarder.resetCamera();
                 } else if (stringAction.equals(UtilContent.stopScreens)) {
                     Server.forwarder.resetScreens();
+                } else if(stringAction.equals(UtilContent.disconnect)){
+                    Server.forwarder.disconnectClient();
+                } else if (stringAction.equals(UtilContent.shutdown)) {
+                    Server.forwarder.shutDownClient();
                 } else {
                     Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
                     switch (action.getAction()) {
@@ -58,10 +50,15 @@ public class ServerSession extends Session {
                         }
                         case UtilContent.changeCurrent: {
                             Server.forwarder.changeCurrentClient((String) action.getData());
+                            break;
+                        }
+                        case UtilContent.killProcess: {
+                            Server.forwarder.killProcessClient(stringAction);
+                            break;
                         }
                     }
                 }
-            } catch (IOException e) {
+            } catch (IOException | NullPointerException e) {
                 e.printStackTrace();
                 System.out.println("Disconnect " + role + "... error!");
                 if (role.equals(UtilContent.admin)) {

@@ -22,7 +22,7 @@ public class AdminGui extends JFrame {
     private MemoryPanel memoryPanel;
     private ProcessorPanel processorPanel;
     private FileStorePanel fileStorePanel;
-    private ProcessPanel processPanel;
+    public ProcessPanel processPanel;
     private InterfacePanel interfacePanel;
     public CameraPanel cameraPanel;
     public ScreensPanel screensPanel;
@@ -115,6 +115,10 @@ public class AdminGui extends JFrame {
         pnListUser.remove(index);
         pnListUser.revalidate();
         pnListUser.repaint();
+        //reset when destroy current
+        if(currentUser.equals(id)){
+            reset();
+        }
     }
 
     public void setCurrentButton(String id) {
@@ -140,6 +144,7 @@ public class AdminGui extends JFrame {
         interfacePanel.create(systemInfo);
         cameraPanel.create();
         screensPanel.create();
+        osHwTextPanel.headerOsHwPanel.create();
         created = true;
     }
 
@@ -152,6 +157,7 @@ public class AdminGui extends JFrame {
         interfacePanel.reset();
         cameraPanel.reset();
         screensPanel.reset();
+        osHwTextPanel.headerOsHwPanel.reset();
         created = false;
     }
 

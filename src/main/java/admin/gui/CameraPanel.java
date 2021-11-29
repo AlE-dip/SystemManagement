@@ -14,6 +14,7 @@ public class CameraPanel extends Component {
     }
 
     public JPanel createPanel(){
+        btCamera.setEnabled(false);
         return pnMain;
     }
 

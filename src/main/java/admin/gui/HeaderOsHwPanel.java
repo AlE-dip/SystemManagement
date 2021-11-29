@@ -13,6 +13,8 @@ public class HeaderOsHwPanel {
     }
 
     public JPanel createPanel(){
+        btDisconnect.setEnabled(false);
+        btShutdown.setEnabled(false);
         return pnMain;
     }
 

@@ -78,13 +78,14 @@ public class Session extends Thread {
 
     @Override
     public void interrupt() {
-        super.interrupt();
         try {
             skConnect.close();
+            skConnect = null;
             closeSocket();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        super.interrupt();
     }
 
     public void closeSocket() {

@@ -1,12 +1,10 @@
 package admin;
 
-import admin.gui.AdminGui;
-import admin.gui.CameraPanel;
-import admin.gui.HeaderOsHwPanel;
-import admin.gui.ScreensPanel;
+import admin.gui.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import core.Core;
+import core.ProcessManager;
 import core.Session;
 import core.UtilContent;
 import core.model.Action;
@@ -109,11 +107,26 @@ public class AdminSession extends Session {
         gui.osHwTextPanel.headerOsHwPanel.setEventButton(new HeaderOsHwPanel.Control() {
             @Override
             public void disconnect() {
-
+                sendRequest(UtilContent.disconnect);
             }
 
             @Override
             public void shutdown() {
+                sendRequest(UtilContent.shutdown);
+            }
+        });
+
+        //set sự kiện click end task
+        gui.processPanel.setEventButton(new ProcessPanel.ProcessManager() {
+            @Override
+            public void killProcess(String pid) {
+                Action action = new Action(UtilContent.killProcess, pid);
+                try {
+                    String stringAction = new ObjectMapper().writeValueAsString(action);
+                    sendRequest(stringAction);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
 
             }
         });
