@@ -7,6 +7,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
@@ -26,14 +27,28 @@ public class Core {
     }
 
     public static void resizeBasedOnWidth(Mat image, int width){
-        float e = (float) (1.0 * width) / image.cols();
-        int w = (int) (e * image.rows());
         int height = (int) (1.0 * width / image.cols() * image.rows());
         Size size = new Size(width, height);
         Imgproc.resize( image, image, size );
     }
 
+    public static void resizeBasedOnHeight(Mat image, int height){
+        int width = (int) (1.0 * height / image.rows() * image.cols());
+        Size size = new Size(width, height);
+        Imgproc.resize( image, image, size );
+    }
 
+    public static void resizeAuto(Mat image, int width, int height){
+        float ratioContain = (float) ((1.0 * width) / height);
+        float ratioImage = (float) (1.0 * image.cols()) / image.rows();
+        if(ratioContain > ratioImage){
+            //resize base width
+            resizeBasedOnWidth(image, width);
+        }else {
+            //resize base height
+            resizeBasedOnHeight(image, height);
+        }
+    }
 
     public static void writeMatToBuffer(Mat image, BufferedWriter writer) throws IOException {
         byte[] points = new byte[(int) (image.total() * image.channels())];
@@ -79,6 +94,37 @@ public class Core {
         ImageIO.write(image, "png", baos);
         baos.flush();
         return Imgcodecs.imdecode(new MatOfByte(baos.toByteArray()), Imgcodecs.IMREAD_UNCHANGED);
+    }
+
+    public static String bufferedImageToString(BufferedImage image) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", baos);
+        baos.flush();
+        byte[] bytes = baos.toByteArray();
+        return Base64.getEncoder().encodeToString(bytes);
+    }
+
+    public static BufferedImage stringToBufferedImage(String data) throws IOException {
+        byte[] bytes = Base64.getDecoder().decode(data);
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+        return ImageIO.read(bais);
+    }
+
+    public static ImageIcon scaleImage(ImageIcon icon, int w, int h)
+    {
+        int nw = icon.getIconWidth();
+        int nh = icon.getIconHeight();
+        if(icon.getIconWidth() > w)
+        {
+            nw = w;
+            nh = (nw * icon.getIconHeight()) / icon.getIconWidth();
+        }
+        if(nh > h)
+        {
+            nh = h;
+            nw = (icon.getIconWidth() * nh) / icon.getIconHeight();
+        }
+        return new ImageIcon(icon.getImage().getScaledInstance(nw, nh, Image.SCALE_SMOOTH));
     }
 
     public static BufferedImage resize(BufferedImage image, int width, int height) {

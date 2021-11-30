@@ -1,5 +1,6 @@
 package client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import core.*;
 import core.model.Action;
@@ -9,6 +10,9 @@ import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
 
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -20,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class ClientSession extends Session {
     private Thread threadSystemInfo;
     private String id;
+    ClipboardListener clipboardListener;
 
     public ClientSession(Socket skConnect) throws IOException {
         super(skConnect);
@@ -57,6 +62,14 @@ public class ClientSession extends Session {
         Core.writeString(writerScreens, stringAction);
     }
 
+    private void createConnectClipboard() throws IOException {
+        skClipboard = new Socket(UtilContent.address, UtilContent.port);
+        createBufferedClipboard();
+        Action action = new Action(UtilContent.createConnectClipboard, id);
+        String stringAction = new ObjectMapper().writeValueAsString(action);
+        Core.writeString(writerClipboard, stringAction);
+    }
+
     private void disconnect() {
         interrupt();
     }
@@ -78,6 +91,24 @@ public class ClientSession extends Session {
         } catch (Exception e) {
             e.printStackTrace();
         }*/
+    }
+
+    public void sendRequest(String stringAction){
+        try {
+            Core.writeString(writerConnect, stringAction);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void stopClipboard() {
+        //Gắn false để dừng theo dõi clipboard
+        if(clipboardListener != null){
+            clipboardListener.run = false;
+            clipboardListener = null;
+            resetClipboard();
+            System.out.println("Stopped clipboard.");
+        }
     }
 
     public void sendSystemInfo(BufferedWriter writer, BufferedReader reader) throws IOException {
@@ -176,6 +207,42 @@ public class ClientSession extends Session {
         }
     }
 
+    private void clipboardListen(BufferedWriter writerClipboard) {
+        clipboardListener = new ClipboardListener(new ClipboardListener.ClipboardChange() {
+            @Override
+            public void onChange(Transferable transferable) {
+                ObjectMapper mapper = new ObjectMapper();
+                try {
+                    String data = (String) (transferable.getTransferData(DataFlavor.stringFlavor));
+                    Action action = new Action(UtilContent.sendTypeString, data);
+                    String stringAction = mapper.writeValueAsString(action);
+                    Core.writeString(writerClipboard, stringAction);
+                    System.out.println("Send string");
+                } catch (Exception e) {
+                    try {
+                        BufferedImage bufferedImage = (BufferedImage) transferable.getTransferData(DataFlavor.imageFlavor);
+                        String data = Core.bufferedImageToString(bufferedImage);
+                        Action action = new Action(UtilContent.sendTypeImage, data);
+                        String stringAction = mapper.writeValueAsString(action);
+                        Core.writeString(writerClipboard, stringAction);
+                        System.out.println("Send image");
+                    } catch (UnsupportedFlavorException ex) {
+                        System.out.println("Not string or image UnsupportedFlavorException");
+                    } catch (IOException ex) {
+                        System.out.println("Not string or image IOException");
+                    }
+                }
+            }
+
+            @Override
+            public void onClose() {
+                sendRequest(UtilContent.onCloseClipboard);
+                System.out.println("Lost clipboard");
+            }
+        });
+
+    }
+
     @Override
     public void run() {
         super.run();
@@ -187,6 +254,8 @@ public class ClientSession extends Session {
                     createConnectSystemInfo();
                     System.out.println("SystemInfo running...");
                 } else if (stringAction.equals(UtilContent.reset)) {
+                    //Yêu cầu reset từ server
+                    stopClipboard();
                     threadSystemInfo.interrupt();
                     closeSocket();
                     System.out.println("Wait...");
@@ -200,14 +269,19 @@ public class ClientSession extends Session {
                     screensStart(writerScreens);
                 } else if (stringAction.equals(UtilContent.stopScreens)) {
                     resetScreens();
-                } else if (stringAction.equals(UtilContent.disconnect)){
+                } else if (stringAction.equals(UtilContent.disconnect)) {
                     disconnect();
                 } else if (stringAction.equals(UtilContent.shutdown)) {
                     shutdown();
+                } else if (stringAction.equals(UtilContent.createConnectClipboard)) {
+                    createConnectClipboard();
+                    clipboardListen(writerClipboard);
+                } else if (stringAction.equals(UtilContent.stopClipboard)) {
+                    stopClipboard();
                 } else {
                     Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
-                    switch (action.getAction()){
-                        case UtilContent.killProcess:{
+                    switch (action.getAction()) {
+                        case UtilContent.killProcess: {
                             killProcess((String) action.getData());
                         }
                     }

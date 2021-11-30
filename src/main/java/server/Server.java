@@ -101,6 +101,15 @@ public class Server {
                 serverSession.setReaderScreens(reader);
                 forwarder.createConnectScreens();
                 forwarder.runScreens();
+                break;
+            }
+            case UtilContent.createConnectClipboard: {
+                serverSession.setSkClipboard(socket);
+                serverSession.setWriterClipboard(writer);
+                serverSession.setReaderClipboard(reader);
+                forwarder.createConnectClipboard();
+                forwarder.runClipboard();
+                break;
             }
         }
     }

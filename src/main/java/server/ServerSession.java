@@ -41,6 +41,10 @@ public class ServerSession extends Session {
                     Server.forwarder.disconnectClient();
                 } else if (stringAction.equals(UtilContent.shutdown)) {
                     Server.forwarder.shutDownClient();
+                } else if (stringAction.equals(UtilContent.stopClipboard)) {
+                    Server.forwarder.resetClipboard();
+                } else if (stringAction.equals(UtilContent.onCloseClipboard)) {
+                    Server.forwarder.onCloseClipboard();
                 } else {
                     Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
                     switch (action.getAction()) {

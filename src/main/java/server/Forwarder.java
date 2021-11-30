@@ -49,6 +49,12 @@ public class Forwarder {
         }
     }
 
+    public void createConnectClipboard() throws IOException {
+        if(clientServer != null && clientServer.getSkClipboard() == null){
+            clientServer.sendRequest(UtilContent.createConnectClipboard);
+        }
+    }
+
     public void runSystemInfo() throws IOException {
         if (adminServer == null || clientServer == null || adminServer.getSkSystemInfo() == null || clientServer.getSkSystemInfo() == null) {
             return;
@@ -115,17 +121,60 @@ public class Forwarder {
     }
 
     public void runCamera() throws IOException {
-        if (adminServer == null || clientServer == null || adminServer.getSkSystemInfo() == null || clientServer.getSkSystemInfo() == null) {
+        if (adminServer == null || clientServer == null || adminServer.getSkCamera() == null || clientServer.getSkCamera() == null) {
             return;
         }
         forwardUtil(adminServer.getWriterCamera(), clientServer.getReaderCamera(), "Camera");
     }
 
     public void runScreens() throws IOException {
-        if (adminServer == null || clientServer == null || adminServer.getSkSystemInfo() == null || clientServer.getSkSystemInfo() == null) {
+        if (adminServer == null || clientServer == null || adminServer.getSkScreens() == null || clientServer.getSkScreens() == null) {
             return;
         }
         forwardUtil(adminServer.getWriterScreens(), clientServer.getReaderScreens(), "Screens");
+    }
+
+    public void runClipboard() throws IOException {
+        if (adminServer == null || clientServer == null || adminServer.getSkClipboard() == null || clientServer.getSkClipboard() == null) {
+            return;
+        }
+        forwardUtil(adminServer.getWriterClipboard(), clientServer.getReaderClipboard(), "Clipboard");
+    }
+
+    public void resetCamera(){
+        clientServer.sendRequest(UtilContent.stopCamera);
+        clientServer.resetCamera();
+        adminServer.resetCamera();
+    }
+
+    public void resetScreens(){
+        clientServer.sendRequest(UtilContent.stopScreens);
+        clientServer.resetScreens();
+        adminServer.resetScreens();
+    }
+
+    public void disconnectClient(){
+        clientServer.sendRequest(UtilContent.disconnect);
+    }
+
+    public void shutDownClient(){
+        clientServer.sendRequest(UtilContent.shutdown);
+    }
+
+    public void resetClipboard(){
+        clientServer.sendRequest(UtilContent.stopClipboard);
+        clientServer.resetClipboard();
+        adminServer.resetClipboard();
+    }
+
+    public void onCloseClipboard(){
+        adminServer.sendRequest(UtilContent.onCloseClipboard);
+        clientServer.resetClipboard();
+        adminServer.resetClipboard();
+    }
+
+    public void killProcessClient(String stringAction){
+        clientServer.sendRequest(stringAction);
     }
 
     public ServerSession firstOrNonClient() {
@@ -236,30 +285,6 @@ public class Forwarder {
         threadSystemInfo.start();
     }
 
-    public void resetCamera(){
-        clientServer.sendRequest(UtilContent.stopCamera);
-        clientServer.resetCamera();
-        adminServer.resetCamera();
-    }
-
-    public void resetScreens(){
-        clientServer.sendRequest(UtilContent.stopScreens);
-        clientServer.resetScreens();
-        adminServer.resetScreens();
-    }
-
-    public void disconnectClient(){
-        clientServer.sendRequest(UtilContent.disconnect);
-    }
-
-    public void shutDownClient(){
-        clientServer.sendRequest(UtilContent.shutdown);
-    }
-
-    public void killProcessClient(String stringAction){
-        clientServer.sendRequest(stringAction);
-    }
-
     //xóa admin, tạm dùng client
     public void disconnectWithAdmin() {
         adminServer.interrupt();
@@ -284,7 +309,6 @@ public class Forwarder {
         mapWork.remove(id);
         System.out.println("Disconnect client " + id + "!!!");
         //trường hợp mất connect với current client
-        clientServer.interrupt();
         adminServer.sendRequest(UtilContent.reset);
         clientServer = firstOrNonClient();
         if (clientServer != null) {

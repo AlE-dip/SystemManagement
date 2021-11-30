@@ -14,8 +14,9 @@ public class Session extends Thread {
     protected Socket skConnect;
     protected Socket skSystemInfo;
     protected Socket skScreens;
-    protected Socket skEvent;
     protected Socket skCamera;
+    protected Socket skClipboard;
+    protected Socket skKeyboard;
     protected BufferedReader readerConnect;
     protected BufferedWriter writerConnect;
     protected BufferedReader readerSystemInfo;
@@ -26,6 +27,10 @@ public class Session extends Thread {
     protected BufferedWriter writerScreens;
     protected BufferedReader readerCamera;
     protected BufferedWriter writerCamera;
+    protected BufferedReader readerClipboard;
+    protected BufferedWriter writerClipboard;
+    protected BufferedReader readerKeyboard;
+    protected BufferedWriter writerKeyboard;
 
     public Session(Socket skConnect) throws IOException {
         this.skConnect = skConnect;
@@ -36,29 +41,6 @@ public class Session extends Thread {
     @Override
     public void run() {
         super.run();
-    }
-
-    public String createConnectInfo() throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        ConnectionInfo connectionInfo = new ConnectionInfo();
-        connectionInfo.setIp(skConnect.getLocalAddress().getHostAddress());
-        connectionInfo.setPort(skConnect.getLocalPort());
-        return mapper.writeValueAsString(connectionInfo);
-    }
-
-    public String createStringConnect(ServerSocket serverSocket) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        ConnectionInfo connectionInfo = new ConnectionInfo();
-        connectionInfo.setIp(UtilContent.address);
-        connectionInfo.setPort(serverSocket.getLocalPort());
-        return mapper.writeValueAsString(connectionInfo);
-    }
-
-    public static Socket createSocketConnect(String stringConnect) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        ConnectionInfo connectionInfo = mapper.readerFor(ConnectionInfo.class).readValue(stringConnect);
-        Socket skConnect = new Socket(connectionInfo.getIp(), connectionInfo.getPort());
-        return skConnect;
     }
 
     public void createBufferedSystemInfo() throws IOException {
@@ -74,6 +56,16 @@ public class Session extends Thread {
     public void createBufferedScreens() throws IOException {
         readerScreens = new BufferedReader(new InputStreamReader(skScreens.getInputStream()));
         writerScreens = new BufferedWriter(new OutputStreamWriter(skScreens.getOutputStream()));
+    }
+
+    public void createBufferedClipboard() throws IOException {
+        readerClipboard = new BufferedReader(new InputStreamReader(skClipboard.getInputStream()));
+        writerClipboard = new BufferedWriter(new OutputStreamWriter(skClipboard.getOutputStream()));
+    }
+
+    public void createBufferedKeyboard() throws IOException {
+        readerKeyboard = new BufferedReader(new InputStreamReader(skKeyboard.getInputStream()));
+        writerKeyboard = new BufferedWriter(new OutputStreamWriter(skKeyboard.getOutputStream()));
     }
 
     @Override
@@ -94,28 +86,13 @@ public class Session extends Thread {
                 skSystemInfo.close();
                 skSystemInfo = null;
             }
-            if (skEvent != null && !skEvent.isClosed()) {
-                skEvent.close();
-                skEvent = null;
-            }
-            if (skScreens != null && !skScreens.isClosed()) {
-                skScreens.close();
-                skScreens = null;
-            }
-            if (skCamera != null && !skCamera.isClosed()) {
-                skCamera.close();
-                skCamera = null;
-            }
+            reset();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void reset() throws IOException {
-        if (skEvent != null && !skEvent.isClosed()) {
-            skEvent.close();
-            skEvent = null;
-        }
         if (skScreens != null && !skScreens.isClosed()) {
             skScreens.close();
             skScreens = null;
@@ -123,6 +100,14 @@ public class Session extends Thread {
         if (skCamera != null && !skCamera.isClosed()) {
             skCamera.close();
             skCamera = null;
+        }
+        if (skClipboard != null && !skClipboard.isClosed()) {
+            skClipboard.close();
+            skClipboard = null;
+        }
+        if (skKeyboard != null && !skKeyboard.isClosed()) {
+            skKeyboard.close();
+            skKeyboard = null;
         }
     }
 
@@ -142,6 +127,28 @@ public class Session extends Thread {
             if (skScreens != null && !skScreens.isClosed()) {
                 skScreens.close();
                 skScreens = null;
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void resetClipboard() {
+        try {
+            if (skClipboard != null && !skClipboard.isClosed()) {
+                skClipboard.close();
+                skClipboard = null;
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void resetKeyboard() {
+        try {
+            if (skKeyboard != null && !skKeyboard.isClosed()) {
+                skKeyboard.close();
+                skKeyboard = null;
             }
         }catch (IOException e){
             e.printStackTrace();
@@ -170,14 +177,6 @@ public class Session extends Thread {
 
     public void setSkScreens(Socket skScreens) {
         this.skScreens = skScreens;
-    }
-
-    public Socket getSkEvent() {
-        return skEvent;
-    }
-
-    public void setSkEvent(Socket skEvent) {
-        this.skEvent = skEvent;
     }
 
     public BufferedReader getReaderConnect() {
@@ -274,5 +273,53 @@ public class Session extends Thread {
 
     public void setWriterCamera(BufferedWriter writerCamera) {
         this.writerCamera = writerCamera;
+    }
+
+    public Socket getSkClipboard() {
+        return skClipboard;
+    }
+
+    public void setSkClipboard(Socket skClipboard) {
+        this.skClipboard = skClipboard;
+    }
+
+    public Socket getSkKeyboard() {
+        return skKeyboard;
+    }
+
+    public void setSkKeyboard(Socket skKeyboard) {
+        this.skKeyboard = skKeyboard;
+    }
+
+    public BufferedReader getReaderClipboard() {
+        return readerClipboard;
+    }
+
+    public void setReaderClipboard(BufferedReader readerClipboard) {
+        this.readerClipboard = readerClipboard;
+    }
+
+    public BufferedWriter getWriterClipboard() {
+        return writerClipboard;
+    }
+
+    public void setWriterClipboard(BufferedWriter writerClipboard) {
+        this.writerClipboard = writerClipboard;
+    }
+
+    public BufferedReader getReaderKeyboard() {
+        return readerKeyboard;
+    }
+
+    public void setReaderKeyboard(BufferedReader readerKeyboard) {
+        this.readerKeyboard = readerKeyboard;
+    }
+
+    public BufferedWriter getWriterKeyboard() {
+        return writerKeyboard;
+    }
+
+    public void setWriterKeyboard(BufferedWriter writerKeyboard) {
+        this.writerKeyboard = writerKeyboard;
     }
 }

@@ -17,6 +17,7 @@ import org.opencv.highgui.HighGui;
 import org.opencv.imgproc.Imgproc;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
@@ -52,86 +53,6 @@ public class AdminSession extends Session {
         Core.writeString(writerSystemInfo, UtilContent.systemReceiveReady);
     }
 
-    private void setActionButtonForGui() {
-        //thay đổi user khi click button user
-        gui.guiAction = new AdminGui.GuiAction() {
-            @Override
-            public void changeCurrentUser(String id) {
-                try {
-                    Action action = new Action(UtilContent.changeCurrent, id);
-                    String stringAction = new ObjectMapper().writeValueAsString(action);
-                    Core.writeString(writerConnect, stringAction);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        //set sự kiện click button camera
-        gui.cameraPanel.setEventButton(new CameraPanel.Camera() {
-            @Override
-            public void runCamera() {
-                try {
-                    createConnectCamera();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void stopCamera() {
-                sendRequest(UtilContent.stopCamera);
-                resetCamera();
-            }
-        });
-
-        //set sự kiện click button screens
-        gui.screensPanel.setEventButton(new ScreensPanel.Screens() {
-            @Override
-            public void runScreens() {
-                try {
-                    createConnectScreens();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void stopScreens() {
-                sendRequest(UtilContent.stopScreens);
-                resetScreens();
-            }
-        });
-
-        //set sự kiện click shutdown va disconnect
-        gui.osHwTextPanel.headerOsHwPanel.setEventButton(new HeaderOsHwPanel.Control() {
-            @Override
-            public void disconnect() {
-                sendRequest(UtilContent.disconnect);
-            }
-
-            @Override
-            public void shutdown() {
-                sendRequest(UtilContent.shutdown);
-            }
-        });
-
-        //set sự kiện click end task
-        gui.processPanel.setEventButton(new ProcessPanel.ProcessManager() {
-            @Override
-            public void killProcess(String pid) {
-                Action action = new Action(UtilContent.killProcess, pid);
-                try {
-                    String stringAction = new ObjectMapper().writeValueAsString(action);
-                    sendRequest(stringAction);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
-    }
-
     private void createConnectCamera() throws IOException {
         skCamera = new Socket(UtilContent.address, UtilContent.port);
         createBufferedCamera();
@@ -148,6 +69,15 @@ public class AdminSession extends Session {
         String stringAction = new ObjectMapper().writeValueAsString(action);
         Core.writeString(writerScreens, stringAction);
         screensObserver(readerScreens);
+    }
+
+    private void createConnectClipboard() throws IOException {
+        skClipboard = new Socket(UtilContent.address, UtilContent.port);
+        createBufferedClipboard();
+        Action action = new Action(UtilContent.createConnectClipboard, id);
+        String stringAction = new ObjectMapper().writeValueAsString(action);
+        Core.writeString(writerClipboard, stringAction);
+        clipboardObserver(readerClipboard);
     }
 
     public void receiveSystemInfo(BufferedWriter writer, BufferedReader reader) throws IOException {
@@ -259,6 +189,46 @@ public class AdminSession extends Session {
         thread.start();
     }
 
+    public void clipboardObserver(BufferedReader reader) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("Clipboard.observer running...");
+                while (true){
+                    try {
+                        String dataClipboard = reader.readLine();
+                        Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ObjectMapper mapper = new ObjectMapper();
+                                try {
+                                    Action action = mapper.readerFor(Action.class).readValue(dataClipboard);
+                                    if(action.getAction().equals(UtilContent.sendTypeString)){
+                                        gui.clipKeyboardPanel.clipboardPanelAddItem(action.getData());
+                                    }else if (action.getAction().equals(UtilContent.sendTypeImage)){
+                                        BufferedImage image = Core.stringToBufferedImage((String) action.getData());
+                                        gui.clipKeyboardPanel.clipboardPanelAddItem(image);
+                                    }
+                                } catch (JsonProcessingException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                        thread.start();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        gui.clipKeyboardPanel.reset();
+                        System.out.println("Clipboard.observer stop!");
+                        return;
+                    }
+                }
+            }
+        });
+        thread.start();
+    }
+
     public void sendRequest(String stringAction){
         try {
             Core.writeString(writerConnect, stringAction);
@@ -299,6 +269,8 @@ public class AdminSession extends Session {
                     System.out.println("SystemInfo running...");
                 } else if(stringAction.equals(UtilContent.reset)){
                     reset();
+                } else if(stringAction.equals(UtilContent.onCloseClipboard)){
+                    resetClipboard();
                 } else {
                     Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
                     switch (action.getAction()){
@@ -323,5 +295,113 @@ public class AdminSession extends Session {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void setActionButtonForGui() {
+        //thay đổi user khi click button user
+        gui.guiAction = new AdminGui.GuiAction() {
+            @Override
+            public void changeCurrentUser(String id) {
+                try {
+                    Action action = new Action(UtilContent.changeCurrent, id);
+                    String stringAction = new ObjectMapper().writeValueAsString(action);
+                    Core.writeString(writerConnect, stringAction);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        //set sự kiện click button camera
+        gui.cameraPanel.setEventButton(new CameraPanel.Camera() {
+            @Override
+            public void runCamera() {
+                try {
+                    createConnectCamera();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void stopCamera() {
+                sendRequest(UtilContent.stopCamera);
+                resetCamera();
+            }
+        });
+
+        //set sự kiện click button screens
+        gui.screensPanel.setEventButton(new ScreensPanel.Screens() {
+            @Override
+            public void runScreens() {
+                try {
+                    createConnectScreens();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void stopScreens() {
+                sendRequest(UtilContent.stopScreens);
+                resetScreens();
+            }
+        });
+
+        //set sự kiện click shutdown va disconnect
+        gui.osHwTextPanel.headerOsHwPanel.setEventButton(new HeaderOsHwPanel.Control() {
+            @Override
+            public void disconnect() {
+                sendRequest(UtilContent.disconnect);
+            }
+
+            @Override
+            public void shutdown() {
+                sendRequest(UtilContent.shutdown);
+            }
+        });
+
+        //set sự kiện click end task
+        gui.processPanel.setEventButton(new ProcessPanel.ProcessManager() {
+            @Override
+            public void killProcess(String pid) {
+                Action action = new Action(UtilContent.killProcess, pid);
+                try {
+                    String stringAction = new ObjectMapper().writeValueAsString(action);
+                    sendRequest(stringAction);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+
+        //set sự kiện click button keyboard và clipboard
+        gui.clipKeyboardPanel.setEventButton(new ClipKeyboardPanel.ClipKeyboard() {
+            @Override
+            public void runClipboard() {
+                try {
+                    createConnectClipboard();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void stopClipboard() {
+                sendRequest(UtilContent.stopClipboard);
+                resetClipboard();
+            }
+
+            @Override
+            public void runKeyboard() {
+
+            }
+
+            @Override
+            public void stopKeyboard() {
+
+            }
+        });
     }
 }

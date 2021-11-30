@@ -2,6 +2,7 @@ package ClipKeyboard;
 
 
 
+import core.ClipboardListener;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -25,7 +26,7 @@ import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
-public class ClipboardHistory extends JPanel implements ClipboardListener.EntryListener {
+public class ClipboardHistory extends JPanel {
 
 	  // for the list of entries copied in clipboard
 	  private JList<String> list;
@@ -98,15 +99,7 @@ public class ClipboardHistory extends JPanel implements ClipboardListener.EntryL
 	    frame.setVisible(true); // we display on the screen
 
 	    // we connect the Clipboard Listener to our UI
-	    ClipboardListener listener = new ClipboardListener();
-	    listener.setEntryListener(this);
-	    listener.start();	
-	  }
-
-	  @Override
-	  public void onCopy(String data) {
-	    // we add new entry on the top of our list
-	    listModel.add(0,  data);
+	    //ClipboardListener listener = new ClipboardListener();
 	  }
 
 	  public static void main(String[] args) {
