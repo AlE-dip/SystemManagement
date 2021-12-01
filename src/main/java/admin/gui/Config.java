@@ -33,7 +33,7 @@ public final class Config {
     }
 
     public static final String GUI_TITLE = "Operating System & Hardware Information";
-    public static final int GUI_WIDTH = 1000;
+    public static final int GUI_WIDTH = 1050;
     public static final int GUI_HEIGHT = 700;
 
     public static final int REFRESH_FAST = 1000;

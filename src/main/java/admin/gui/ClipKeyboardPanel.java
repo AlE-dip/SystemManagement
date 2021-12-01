@@ -9,21 +9,26 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-public class ClipKeyboardPanel {
+public class ClipKeyboardPanel extends MouseAdapter {
     private JPanel pnMain;
     private JButton btRunKey;
     private JButton btRunClip;
     private JPanel pnBody;
     private JTextArea taKey;
     private JPanel pnClip;
-    private ArrayList<JPanel> listItem;
+    private ArrayList<JPanel> listItem;//clipboard
+    private ArrayList<Object> listData;//clipboard
     private JLabel lbImage;
+    private ClipboardPopup clipboardPopup;
 
     public ClipKeyboardPanel() {
         listItem = new ArrayList<>();
+        listData = new ArrayList<>();
         btRunClip.setEnabled(false);
         btRunKey.setEnabled(false);
         pnBody = new JPanel(new GridLayout(1,2));
@@ -93,6 +98,8 @@ public class ClipKeyboardPanel {
         btRunKey.setEnabled(false);
         taKey.setText("");
         listItem.clear();
+        listData.clear();
+        pnClip.removeAll();
     }
 
     public void clipboardPanelAddItem(Object object){
@@ -103,15 +110,16 @@ public class ClipKeyboardPanel {
         Border blackline = BorderFactory.createLineBorder(Color.black);
         pnItemClip.setBorder(blackline);
         //List 10 phần tử
-        if(listItem.size() < 10){
-            listItem.add(pnItemClip);
-        }else {
+        listItem.add(pnItemClip);
+        listData.add(object);
+        if(listItem.size() > 10){
             listItem.remove(0);
-            listItem.add(pnItemClip);
+            listData.remove(0);
         }
         pnClip.removeAll();
         for (int i = listItem.size() - 1; i >= 0; i--){
             pnClip.add(listItem.get(i));
+
         }
         //Gắn giá trị
         if(object instanceof String){
@@ -120,6 +128,7 @@ public class ClipKeyboardPanel {
             taItem.setLineWrap(true);
             taItem.setText((String) object);
             pnItemClip.add(taItem, BorderLayout.CENTER);
+            taItem.addMouseListener(this);
         }else if (object instanceof BufferedImage){
             BufferedImage image = (BufferedImage) object;
             lbImage = new JLabel();
@@ -127,7 +136,25 @@ public class ClipKeyboardPanel {
             ImageIcon icon = Core.scaleImage(new ImageIcon(image), 400, 80);
             lbImage.setIcon(icon);
             pnItemClip.add(lbImage, BorderLayout.CENTER);
+            lbImage.addMouseListener(this);
         }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        super.mouseClicked(e);
+        JPanel panel = (JPanel) e.getComponent().getParent();
+        int index = listItem.indexOf(panel);
+        if (clipboardPopup != null){
+            clipboardPopup.dispose();
+            clipboardPopup = null;
+        }
+        clipboardPopup = new ClipboardPopup(listData.get(index), this);
+    }
+
+    public void disposeChildrenFrame(){
+        clipboardPopup.dispose();
+        clipboardPopup = null;
     }
 
     public interface ClipKeyboard {

