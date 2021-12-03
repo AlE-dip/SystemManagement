@@ -69,6 +69,9 @@ public class ClipKeyboardPanel extends MouseAdapter {
                 }else {
                     clipKeyboard.stopClipboard();
                     btRunClip.setText("Run");
+                    listData.clear();
+                    pnClip.removeAll();
+                    listItem.clear();
                 }
             }
         });
@@ -81,6 +84,7 @@ public class ClipKeyboardPanel extends MouseAdapter {
                 }else {
                     clipKeyboard.stopKeyboard();
                     btRunKey.setText("Run");
+                    taKey.setText("");
                 }
             }
         });
@@ -138,6 +142,10 @@ public class ClipKeyboardPanel extends MouseAdapter {
             pnItemClip.add(lbImage, BorderLayout.CENTER);
             lbImage.addMouseListener(this);
         }
+    }
+
+    public void appendDataKeyEvent(String data){
+        taKey.append(" " + data);
     }
 
     @Override

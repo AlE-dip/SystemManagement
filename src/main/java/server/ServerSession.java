@@ -45,6 +45,8 @@ public class ServerSession extends Session {
                     Server.forwarder.resetClipboard();
                 } else if (stringAction.equals(UtilContent.onCloseClipboard)) {
                     Server.forwarder.onCloseClipboard();
+                } else if (stringAction.equals(UtilContent.stopKeyboard)) {
+                    Server.forwarder.resetKeyboard();
                 } else {
                     Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
                     switch (action.getAction()) {

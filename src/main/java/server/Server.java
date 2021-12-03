@@ -111,6 +111,14 @@ public class Server {
                 forwarder.runClipboard();
                 break;
             }
+            case UtilContent.createConnectKeyboard: {
+                serverSession.setSkKeyboard(socket);
+                serverSession.setWriterKeyboard(writer);
+                serverSession.setReaderKeyboard(reader);
+                forwarder.createConnectKeyboard();
+                forwarder.runKeyboard();
+                break;
+            }
         }
     }
 

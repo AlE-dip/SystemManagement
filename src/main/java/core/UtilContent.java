@@ -33,5 +33,6 @@ public class UtilContent {
     public static final String stopKeyboard = "stopKeyboard";
     public static final String sendTypeString = "sendTypeString";//Clipboard send string
     public static final String sendTypeImage = "sendTypeImage";//Clipboard send image
+    public static final String sendTypeEventKey = "sendTypeEventKey";//Keyboard send key press
     public static final String onCloseClipboard = "onCloseClipboard";//error clipboard client
 }

@@ -80,6 +80,15 @@ public class AdminSession extends Session {
         clipboardObserver(readerClipboard);
     }
 
+    private void createConnectKeyboard() throws IOException {
+        skKeyboard = new Socket(UtilContent.address, UtilContent.port);
+        createBufferedKeyboard();
+        Action action = new Action(UtilContent.createConnectKeyboard, id);
+        String stringAction = new ObjectMapper().writeValueAsString(action);
+        Core.writeString(writerKeyboard, stringAction);
+        keyboardObserver(readerKeyboard);
+    }
+
     public void receiveSystemInfo(BufferedWriter writer, BufferedReader reader) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         threadSystemInfo = new Thread(new Runnable() {
@@ -211,15 +220,16 @@ public class AdminSession extends Session {
                                     }
                                 } catch (JsonProcessingException e) {
                                     e.printStackTrace();
+                                    return;
                                 } catch (IOException e) {
                                     e.printStackTrace();
+                                    return;
                                 }
                             }
                         });
                         thread.start();
                     } catch (Exception e) {
                         e.printStackTrace();
-                        gui.clipKeyboardPanel.reset();
                         System.out.println("Clipboard.observer stop!");
                         return;
                     }
@@ -228,6 +238,33 @@ public class AdminSession extends Session {
         });
         thread.start();
     }
+
+    public void keyboardObserver(BufferedReader reader) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("Keyboard.observer running...");
+                while (true){
+                    try {
+                        String dataKeyboard = reader.readLine();
+                        Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                gui.clipKeyboardPanel.appendDataKeyEvent(dataKeyboard);
+                            }
+                        });
+                        thread.start();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.out.println("Keyboard.observer stop!");
+                        return;
+                    }
+                }
+            }
+        });
+        thread.start();
+    }
+
 
     public void sendRequest(String stringAction){
         try {
@@ -395,12 +432,17 @@ public class AdminSession extends Session {
 
             @Override
             public void runKeyboard() {
-
+                try {
+                    createConnectKeyboard();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
             public void stopKeyboard() {
-
+                sendRequest(UtilContent.stopKeyboard);
+                resetKeyboard();
             }
         });
     }

@@ -2,7 +2,6 @@ package client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import core.UtilContent;
-import core.ConnectionInfo;
 import core.Session;
 import org.opencv.core.Core;
 

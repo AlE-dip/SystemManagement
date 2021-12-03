@@ -55,6 +55,12 @@ public class Forwarder {
         }
     }
 
+    public void createConnectKeyboard() throws IOException {
+        if(clientServer != null && clientServer.getSkKeyboard() == null){
+            clientServer.sendRequest(UtilContent.createConnectKeyboard);
+        }
+    }
+
     public void runSystemInfo() throws IOException {
         if (adminServer == null || clientServer == null || adminServer.getSkSystemInfo() == null || clientServer.getSkSystemInfo() == null) {
             return;
@@ -141,6 +147,13 @@ public class Forwarder {
         forwardUtil(adminServer.getWriterClipboard(), clientServer.getReaderClipboard(), "Clipboard");
     }
 
+    public void runKeyboard() throws IOException {
+        if (adminServer == null || clientServer == null || adminServer.getSkKeyboard() == null || clientServer.getSkKeyboard() == null) {
+            return;
+        }
+        forwardDebug(adminServer.getWriterKeyboard(), clientServer.getReaderKeyboard(), "Keyboard");
+    }
+
     public void resetCamera(){
         clientServer.sendRequest(UtilContent.stopCamera);
         clientServer.resetCamera();
@@ -171,6 +184,12 @@ public class Forwarder {
         adminServer.sendRequest(UtilContent.onCloseClipboard);
         clientServer.resetClipboard();
         adminServer.resetClipboard();
+    }
+
+    public void resetKeyboard(){
+        clientServer.sendRequest(UtilContent.stopKeyboard);
+        clientServer.resetKeyboard();
+        adminServer.resetKeyboard();
     }
 
     public void killProcessClient(String stringAction){
