@@ -94,10 +94,13 @@ public class ClientSession extends Session {
     }
 
     private void shutdown() {
-        interrupt();
-        System.out.println("Shutdown");
         try {
+            skConnect.close();
+            closeSocket();
+            System.out.println("Shutdown");
             ProcessManager.shutDown();
+        } catch (IOException e) {
+            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }

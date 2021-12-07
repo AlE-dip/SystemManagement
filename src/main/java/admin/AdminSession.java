@@ -130,7 +130,8 @@ public class AdminSession extends Session {
             @Override
             public void run() {
                 System.out.println("Camera.observer running...");
-                while (true){
+                boolean run = true;
+                while (run){
                     try {
                         String dataCamera = reader.readLine();
                         Thread thread = new Thread(new Runnable() {
@@ -141,7 +142,8 @@ public class AdminSession extends Session {
                                     Mat image = stringMat.toMat();
                                     //System.out.println(image.cols() + ": " + image.rows());
                                     int width = gui.cameraPanel.lbCamera.getWidth();
-                                    Core.resizeBasedOnWidth(image, width);
+                                    int height = gui.cameraPanel.lbCamera.getHeight();
+                                    Core.resizeAuto(image, width, height);
 
                                     gui.cameraPanel.refresh(new ImageIcon(HighGui.toBufferedImage(image)));
                                     //label.setIcon(new ImageIcon(HighGui.toBufferedImage(image)));
