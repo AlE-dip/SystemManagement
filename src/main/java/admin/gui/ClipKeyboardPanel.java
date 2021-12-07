@@ -67,11 +67,18 @@ public class ClipKeyboardPanel extends MouseAdapter {
                     clipKeyboard.runClipboard();
                     btRunClip.setText("Stop");
                 }else {
-                    clipKeyboard.stopClipboard();
-                    btRunClip.setText("Run");
-                    listData.clear();
-                    pnClip.removeAll();
-                    listItem.clear();
+                    int result = JOptionPane.showConfirmDialog(
+                            JOptionPane.getFrameForComponent(pnMain),
+                            "Stop???",
+                            "Clipboard",
+                            JOptionPane.YES_NO_OPTION);
+                    if(result == 0){
+                        clipKeyboard.stopClipboard();
+                        btRunClip.setText("Run");
+                        listData.clear();
+                        pnClip.removeAll();
+                        listItem.clear();
+                    }
                 }
             }
         });
@@ -82,9 +89,16 @@ public class ClipKeyboardPanel extends MouseAdapter {
                     clipKeyboard.runKeyboard();
                     btRunKey.setText("Stop");
                 }else {
-                    clipKeyboard.stopKeyboard();
-                    btRunKey.setText("Run");
-                    taKey.setText("");
+                    int result = JOptionPane.showConfirmDialog(
+                            JOptionPane.getFrameForComponent(pnMain),
+                            "Stop???",
+                            "Keyboard",
+                            JOptionPane.YES_NO_OPTION);
+                    if(result == 0){
+                        clipKeyboard.stopKeyboard();
+                        btRunKey.setText("Run");
+                        taKey.setText("");
+                    }
                 }
             }
         });

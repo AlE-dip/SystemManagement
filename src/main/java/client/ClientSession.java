@@ -325,6 +325,13 @@ public class ClientSession extends Session {
                     }
                     disconnect();
                 } else if (stringAction.equals(UtilContent.shutdown)) {
+                    stopClipboard();
+                    stopKeyboard();
+                    try {
+                        GlobalScreen.unregisterNativeHook();
+                    } catch (NativeHookException e) {
+                        e.printStackTrace();
+                    }
                     shutdown();
                 } else if (stringAction.equals(UtilContent.createConnectClipboard)) {
                     createConnectClipboard();

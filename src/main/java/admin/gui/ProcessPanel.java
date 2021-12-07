@@ -276,8 +276,15 @@ public class ProcessPanel extends OshiJPanel { // NOSONAR squid:S110
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(!lbPid.getText().equals("0")){
-                    processManager.killProcess(lbPid.getText());
-                    lbPid.setText("0");
+                    int result = JOptionPane.showConfirmDialog(
+                            JOptionPane.getFrameForComponent(btEndTask),
+                            "Kill process: " + lbPid.getText() ,
+                            "Kill process",
+                            JOptionPane.YES_NO_OPTION);
+                    if(result == 0){
+                        processManager.killProcess(lbPid.getText());
+                        lbPid.setText("0");
+                    }
                 }
             }
         });

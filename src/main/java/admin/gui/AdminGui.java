@@ -23,7 +23,8 @@ public class AdminGui extends JFrame {
     //OshiGui
     private ArrayList<Image> listIcon;
     private boolean loadIcon;
-    ImageIcon iconUser;
+    private ImageIcon iconUser;
+    public static ImageIcon iconWarn;
     public OsHwTextPanel osHwTextPanel;
     private MemoryPanel memoryPanel;
     private ProcessorPanel processorPanel;
@@ -92,6 +93,7 @@ public class AdminGui extends JFrame {
             listIcon.add(ImageIO.read(new File("image\\monitor.png")));
             listIcon.add(ImageIO.read(new File("image\\keyboard.png")));
             iconUser = new ImageIcon(ImageIO.read(new File("image\\programmer.png")));
+            iconWarn = new ImageIcon(ImageIO.read(new File("image\\warn.png")));
         } catch (IOException e) {
             e.printStackTrace();
             loadIcon = false;

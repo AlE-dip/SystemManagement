@@ -154,7 +154,7 @@ public class AdminSession extends Session {
                     } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println("Camera.observer stop!");
-                        gui.cameraPanel.lbCamera.setIcon(null);
+                        gui.cameraPanel.lbCamera.setIcon(gui.iconWarn);
                         return;
                     }
                 }
@@ -188,7 +188,7 @@ public class AdminSession extends Session {
                         thread1.start();
                     } catch (Exception e) {
                         e.printStackTrace();
-                        gui.screensPanel.lbScreens.setIcon(null);
+                        gui.screensPanel.lbScreens.setIcon(gui.iconWarn);
                         System.out.println("Screenshot.observer stop!");
                         return;
                     }
@@ -278,26 +278,6 @@ public class AdminSession extends Session {
     public void run() {
         super.run();
         System.out.println("Admin start...");
-        Thread sendRequest = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Scanner scanner = new Scanner(System.in);
-                while (true){
-                    String action = scanner.nextLine();
-                    if(action.equals(UtilContent.createConnectCamera)){
-                        try {
-                            createConnectCamera();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }else if(action.equals(UtilContent.stopCamera)){
-                        sendRequest(UtilContent.stopCamera);
-                        resetCamera();
-                    }
-                }
-            }
-        });
-        sendRequest.start();
         try {
             while (true){
                 String stringAction = readerConnect.readLine();

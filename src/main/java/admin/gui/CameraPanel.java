@@ -29,11 +29,16 @@ public class CameraPanel extends Component {
                 if(btCamera.getText().equals("Run")){
                     camera.runCamera();
                     btCamera.setText("Stop");
-                    lbCamera.setText("");
                 }else {
-                    camera.stopCamera();
-                    btCamera.setText("Run");
-                    lbCamera.setText("Close");
+                    int result = JOptionPane.showConfirmDialog(
+                            JOptionPane.getFrameForComponent(pnMain),
+                            "Stop???",
+                            "Camera",
+                            JOptionPane.YES_NO_OPTION);
+                    if(result == 0){
+                        camera.stopCamera();
+                        btCamera.setText("Run");
+                    }
                 }
             }
         });
@@ -41,12 +46,13 @@ public class CameraPanel extends Component {
 
     public void reset(){
         lbCamera.setIcon(null);
-        lbCamera.setText("Close");
+        lbCamera.setIcon(AdminGui.iconWarn);
         btCamera.setEnabled(false);
         btCamera.setText("Run");
     }
 
     public void create(){
+        lbCamera.setIcon(AdminGui.iconWarn);
         btCamera.setEnabled(true);
     }
 

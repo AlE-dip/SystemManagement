@@ -30,11 +30,16 @@ public class ScreensPanel {
                 if(btScreens.getText().equals("Run")){
                     screens.runScreens();
                     btScreens.setText("Stop");
-                    lbScreens.setText("");
                 }else {
-                    screens.stopScreens();
-                    btScreens.setText("Run");
-                    lbScreens.setText("Close");
+                    int result = JOptionPane.showConfirmDialog(
+                            JOptionPane.getFrameForComponent(pnMain),
+                            "Stop???",
+                            "Screens",
+                            JOptionPane.YES_NO_OPTION);
+                    if(result == 0){
+                        screens.stopScreens();
+                        btScreens.setText("Run");
+                    }
                 }
             }
         });
@@ -42,13 +47,14 @@ public class ScreensPanel {
 
     public void reset(){
         lbScreens.setIcon(null);
-        lbScreens.setText("Close");
+        lbScreens.setIcon(AdminGui.iconWarn);
         btScreens.setEnabled(false);
         btScreens.setText("Run");
         btControl.setEnabled(false);
     }
 
     public void create(){
+        lbScreens.setIcon(AdminGui.iconWarn);
         btScreens.setEnabled(true);
         btControl.setEnabled(true);
     }

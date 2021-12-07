@@ -22,13 +22,27 @@ public class HeaderOsHwPanel {
         btShutdown.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                control.shutdown();
+                int result = JOptionPane.showConfirmDialog(
+                        JOptionPane.getFrameForComponent(pnMain),
+                        "Are you sure?",
+                        "Shutdown",
+                        JOptionPane.YES_NO_OPTION);
+                if(result == 0){
+                    control.shutdown();
+                }
             }
         });
         btDisconnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                control.disconnect();
+                int result = JOptionPane.showConfirmDialog(
+                        JOptionPane.getFrameForComponent(pnMain),
+                        "Are you sure?",
+                        "Disconnect",
+                        JOptionPane.YES_NO_OPTION);
+                if(result == 0){
+                    control.disconnect();
+                }
             }
         });
     }
