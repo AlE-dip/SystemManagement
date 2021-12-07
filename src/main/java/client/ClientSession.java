@@ -96,20 +96,20 @@ public class ClientSession extends Session {
     private void shutdown() {
         interrupt();
         System.out.println("Shutdown");
-        /*try {
+        try {
             ProcessManager.shutDown();
         } catch (Exception e) {
             e.printStackTrace();
-        }*/
+        }
     }
 
     private void killProcess(String pid) {
         System.out.println("Kill" + pid);
-        /*try {
+        try {
             ProcessManager.killProcess(Integer.parseInt(pid));
         } catch (Exception e) {
             e.printStackTrace();
-        }*/
+        }
     }
 
     public void sendRequest(String stringAction){

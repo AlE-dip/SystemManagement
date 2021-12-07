@@ -127,17 +127,23 @@ public class OsHwTextPanel extends OshiJPanel { // NOSONAR squid:S110
 
     private static String getHw(SystemInfo si) {
         StringBuilder sb = new StringBuilder();
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            sb.append(mapper.writeValueAsString(si.getFirmware()).substring(0, 8) + "\n"); //con
-            sb.append(mapper.writeValueAsString(si.getBaseboard()).substring(0, 8) + "\n"); //con
-            sb.append(si.getModel() + "\n");
-            sb.append(si.getManufacturer() + " Để tạm\n");
-            sb.append(si.getSerialNumber() + "\n");
-            sb.append(si.getHardwareUUID() + "\n");
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        sb.append("model: " + si.getModel() + "\n");
+        sb.append("manufacturer: " + si.getManufacturer() + "\n");
+        sb.append("serialNumber: " + si.getSerialNumber() + "\n");
+        sb.append("hardwareUUID: " + si.getHardwareUUID() + "\n");
+        sb.append("\n");
+        sb.append("Firmware:\n");
+        sb.append("    name: " + si.getFirmware().getName() + "\n");
+        sb.append("    version: " + si.getFirmware().getVersion() + "\n");
+        sb.append("    manufacturer: " + si.getFirmware().getManufacturer() + "\n");
+        sb.append("    description: " + si.getFirmware().getDescription() + "\n");
+        sb.append("    releaseDate: " + si.getFirmware().getReleaseDate() + "\n");
+        sb.append("\n");
+        sb.append("Baseboard:\n");
+        sb.append("    version: " + si.getBaseboard().getVersion() + "\n");
+        sb.append("    model: " + si.getBaseboard().getModel() + "\n");
+        sb.append("    manufacturer: " + si.getBaseboard().getManufacturer() + "\n");
+        sb.append("    serialNumber: " + si.getBaseboard().getSerialNumber() + "\n");
         return sb.toString();
     }
 
@@ -153,14 +159,14 @@ public class OsHwTextPanel extends OshiJPanel { // NOSONAR squid:S110
         return sb.toString();
     }
 
-    public void reset(){
+    public void reset() {
         osArea.setText("");
         csArea.setText("");
         displayArea.setText("");
         procArea.setText("");
     }
 
-    public void create(SystemInfo systemInfo){
+    public void create(SystemInfo systemInfo) {
         osPrefix = getOsPrefix(systemInfo);
         osArea.setText(osPrefix + systemInfo.getOperatingSystem().getUpTime());
         procArea.setText(getProc(systemInfo));
