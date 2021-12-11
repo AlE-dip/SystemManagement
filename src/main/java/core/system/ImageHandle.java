@@ -1,5 +1,6 @@
 package core.system;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -25,16 +26,17 @@ public class ImageHandle {
         ArrayList<String> imgList = null;
         Set<String> set = Stream.of(new File(imgLocation + folderName).listFiles())
                 .filter(file -> !file.isDirectory())
+                .filter(file -> (new MimetypesFileTypeMap().getContentType(file)).contains("image"))
                 .map(File::getName)
                 .collect(Collectors.toSet());
-        imgList = new ArrayList<String>(set);
+        imgList = new ArrayList(set);
         return imgList;
     }
 
 //    public static void main (String[] args) throws Exception{
 //        ImageHandle imageHandle = new ImageHandle();
 //        Image image  = ImageIO.read(new File("image\\camera.png"));
-//        imageHandle.store(image, "Hello\\Hello");
+//        imageHandle.storeImage(image, "Hello");
 //        for (String img : imageHandle.scanImage("Hello")) {
 //            System.out.println(img);
 //        }
