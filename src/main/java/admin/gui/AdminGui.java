@@ -41,6 +41,7 @@ public class AdminGui extends JFrame {
     public String currentUser;
     private JButton currentButton;
     public GuiAction guiAction;
+    public String currentHostNameClient;
 
     public AdminGui() {
         super("System Management");
@@ -181,6 +182,7 @@ public class AdminGui extends JFrame {
             if(components[listUser.indexOf(id)] instanceof JButton){
                 currentButton = (JButton) components[listUser.indexOf(id)];
                 currentButton.setBackground(Color.ORANGE);
+                currentHostNameClient = currentButton.getText().split(" - ")[0];
                 currentUser = id;
                 reset();
             }
@@ -191,7 +193,7 @@ public class AdminGui extends JFrame {
         osHwTextPanel.create(systemInfo);
         memoryPanel.create(systemInfo.getMemory());
         processorPanel.create(systemInfo);
-        fileStorePanel.create(systemInfo.getFileSystem());
+        fileStorePanel.create(systemInfo);
         processPanel.create(systemInfo);
         interfacePanel.create(systemInfo);
         cameraPanel.create();
@@ -219,7 +221,7 @@ public class AdminGui extends JFrame {
         osHwTextPanel.refresh(systemInfo);
         memoryPanel.refresh(systemInfo.getMemory());
         processorPanel.refresh(systemInfo.getProcessor());
-        fileStorePanel.refresh(systemInfo.getFileSystem());
+        fileStorePanel.refresh(systemInfo);
         processPanel.refresh(systemInfo);
     }
 

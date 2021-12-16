@@ -3,6 +3,7 @@ package core.model;
 import org.opencv.core.Mat;
 
 import java.util.Base64;
+import java.util.LinkedHashMap;
 
 public class StringMat {
     private int cols;
@@ -32,6 +33,13 @@ public class StringMat {
         Mat image = new Mat(rows, cols, type);
         image.put(0,0, points);
         return image;
+    }
+
+    public void castToStringMat(LinkedHashMap<String, Object> linkedHashMap){
+        cols = (int) linkedHashMap.get("cols");
+        rows = (int) linkedHashMap.get("rows");
+        type = (int) linkedHashMap.get("type");
+        pixels = (String) linkedHashMap.get("pixels");
     }
 
     public int getCols() {

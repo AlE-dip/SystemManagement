@@ -57,6 +57,7 @@ public class FileStorePanel extends OshiJPanel { // NOSONAR squid:S110
     private DefaultPieDataset<String>[] fsData;
     private JFreeChart[] fsCharts;
     private JPanel fsPanel;
+    private JTextArea taDiskInfo;
 
     public FileStorePanel() {
         super();
@@ -99,6 +100,8 @@ public class FileStorePanel extends OshiJPanel { // NOSONAR squid:S110
 //            }
 //        });
 //        timer.start();
+        taDiskInfo = new JTextArea();
+        add(taDiskInfo, BorderLayout.SOUTH);
     }
 
     private static boolean updateDatasets(FileSystem fs, DefaultPieDataset<String>[] fsData, JFreeChart[] fsCharts) {
@@ -138,7 +141,8 @@ public class FileStorePanel extends OshiJPanel { // NOSONAR squid:S110
         plot.setLabelGenerator(labelGenerator);
     }
 
-    public void create(FileSystem fileSystem){
+    public void create(SystemInfo systemInfo){
+        FileSystem fileSystem = systemInfo.getFileSystem();
         ArrayList<FileStore> fileStores = fileSystem.getFileStores();
         fsData = new DefaultPieDataset[fileStores.size()];
         fsCharts = new JFreeChart[fsData.length];
@@ -154,13 +158,15 @@ public class FileStorePanel extends OshiJPanel { // NOSONAR squid:S110
             fsPanel.add(new ChartPanel(fsCharts[i]), fsConstraints);
         }
         updateDatasets(fileSystem, fsData, fsCharts);
+        taDiskInfo.setText(systemInfo.getDiskInfo());
     }
 
-    public void refresh(FileSystem fileSystem){
+    public void refresh(SystemInfo systemInfo){
+        FileSystem fileSystem = systemInfo.getFileSystem();
         if (!updateDatasets(fileSystem, fsData, fsCharts)) {
             fsPanel.removeAll();
             init();
-            create(fileSystem);
+            create(systemInfo);
             fsPanel.revalidate();
             fsPanel.repaint();
         }

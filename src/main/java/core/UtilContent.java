@@ -16,6 +16,7 @@ public class UtilContent {
     public static final String createConnectKeyboard = "createConnectKeyboard";
     public static final String reset = "reset";
     public static final int timeCamera = 10;
+    public static final int onceMinute = 60000;
     public static final int timeSystemInfo = 1000;
     public static final String address = "localhost";//address server
     public static final int port = 50000;//port server
@@ -33,6 +34,11 @@ public class UtilContent {
     public static final String stopKeyboard = "stopKeyboard";
     public static final String sendTypeString = "sendTypeString";//Clipboard send string
     public static final String sendTypeImage = "sendTypeImage";//Clipboard send image
-    public static final String sendTypeEventKey = "sendTypeEventKey";//Keyboard send key press
     public static final String onCloseClipboard = "onCloseClipboard";//error clipboard client
+    public static final String writeLogScreens = "writeLogScreens";
+    public static final String stopLogScreens = "stopLogScreens";
+    public static final String showListLogScreens = "showListLogScreens";
+    public static final String sendTypeScreensLog = "sendTypeScreensLog";
+    public static final String getLogImage = "getLogImage";
+    public static final String getLogImageNull = "getLogImageNull";
 }

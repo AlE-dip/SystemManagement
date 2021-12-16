@@ -7,15 +7,17 @@ import java.awt.event.ActionListener;
 public class ScreensPanel {
     private JPanel pnMain;
     public JButton btScreens;
-    public JButton btControl;
+    public JButton btWriteLog;
     public JLabel lbScreens;
+    private JButton btShowLog;
 
     public ScreensPanel() {
     }
 
     public JPanel createPanel(){
         btScreens.setEnabled(false);
-        btControl.setEnabled(false);
+        btWriteLog.setEnabled(false);
+        btShowLog.setEnabled(false);
         return pnMain;
     }
 
@@ -30,6 +32,7 @@ public class ScreensPanel {
                 if(btScreens.getText().equals("Run")){
                     screens.runScreens();
                     btScreens.setText("Stop");
+                    btWriteLog.setEnabled(true);
                 }else {
                     int result = JOptionPane.showConfirmDialog(
                             JOptionPane.getFrameForComponent(pnMain),
@@ -39,8 +42,35 @@ public class ScreensPanel {
                     if(result == 0){
                         screens.stopScreens();
                         btScreens.setText("Run");
+                        btWriteLog.setText("Write Log");
+                        btWriteLog.setEnabled(false);
                     }
                 }
+            }
+        });
+        btWriteLog.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(btWriteLog.getText().equals("Write Log")){
+                    screens.writeLog();
+                    btWriteLog.setText("Stop");
+                }else {
+                    int result = JOptionPane.showConfirmDialog(
+                            JOptionPane.getFrameForComponent(pnMain),
+                            "Stop???",
+                            "Screens Log",
+                            JOptionPane.YES_NO_OPTION);
+                    if(result == 0){
+                        screens.stopLog();
+                        btWriteLog.setText("Write Log");
+                    }
+                }
+            }
+        });
+        btShowLog.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                screens.showLog();
             }
         });
     }
@@ -50,17 +80,22 @@ public class ScreensPanel {
         lbScreens.setIcon(AdminGui.iconWarn);
         btScreens.setEnabled(false);
         btScreens.setText("Run");
-        btControl.setEnabled(false);
+        btWriteLog.setEnabled(false);
+        btWriteLog.setText("Write Log");
+        btShowLog.setEnabled(false);
     }
 
     public void create(){
         lbScreens.setIcon(AdminGui.iconWarn);
         btScreens.setEnabled(true);
-        btControl.setEnabled(true);
+        btShowLog.setEnabled(true);
     }
 
     public interface Screens{
         public void runScreens();
         public void stopScreens();
+        public void writeLog();
+        public void stopLog();
+        public void showLog();
     }
 }

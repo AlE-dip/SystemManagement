@@ -42,6 +42,8 @@ public class ClipKeyboardPanel extends MouseAdapter {
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         taKey = new JTextArea();
+        taKey.setEditable(false);
+        taKey.setBackground(Color.white);
         taKey.setWrapStyleWord(true);
         taKey.setLineWrap(true);
         pnKey.add(taKey, BorderLayout.CENTER);

@@ -1,6 +1,7 @@
 package core.system;
 
 import oshi.hardware.ComputerSystem;
+import oshi.hardware.HWDiskStore;
 import oshi.hardware.HardwareAbstractionLayer;
 
 public class SystemInfo {
@@ -17,7 +18,7 @@ public class SystemInfo {
     private Processor processor;
     private Network network;
     private oshi.SystemInfo systemInfo;
-
+    private String diskInfo;
 
     public SystemInfo() {
         model = "";
@@ -32,6 +33,7 @@ public class SystemInfo {
         operatingSystem = null;
         processor = null;
         network = null;
+        diskInfo = "";
     }
 
     public SystemInfo(oshi.SystemInfo systemInfo) {
@@ -52,6 +54,13 @@ public class SystemInfo {
         this.operatingSystem = new OperatingSystem(operatingSystem);
         processor = new Processor(hardwareAbstractionLayer.getProcessor());
         network = new Network(operatingSystem.getNetworkParams(), hardwareAbstractionLayer.getNetworkIFs(true));
+        diskInfo = "";
+        for (HWDiskStore hwDiskStore: hardwareAbstractionLayer.getDiskStores()){
+            diskInfo += "Model: " + hwDiskStore.getModel() + " ";
+            diskInfo += "Name: " + hwDiskStore.getName() + " ";
+            diskInfo += "Serial: " + hwDiskStore.getSerial() + " ";
+            diskInfo += "Size: " + Math.round(hwDiskStore.getSize() / 1073741824.0 * 10) / 10 + "GB\n";
+        }
     }
 
     public void refresh() {
@@ -160,5 +169,13 @@ public class SystemInfo {
 
     public void setNetwork(Network network) {
         this.network = network;
+    }
+
+    public String getDiskInfo() {
+        return diskInfo;
+    }
+
+    public void setDiskInfo(String diskInfo) {
+        this.diskInfo = diskInfo;
     }
 }

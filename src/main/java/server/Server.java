@@ -1,10 +1,10 @@
 package server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import core.Core;
 import core.UtilContent;
 import core.Session;
 import core.model.Action;
+import org.opencv.core.Core;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -19,6 +19,8 @@ public class Server {
     public static Forwarder forwarder;
 
     public Server() throws IOException {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
         forwarder = new Forwarder();
         ServerSocket serverSocket = new ServerSocket();
         SocketAddress http = new InetSocketAddress(UtilContent.port);

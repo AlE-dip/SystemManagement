@@ -47,6 +47,12 @@ public class ServerSession extends Session {
                     Server.forwarder.onCloseClipboard();
                 } else if (stringAction.equals(UtilContent.stopKeyboard)) {
                     Server.forwarder.resetKeyboard();
+                } else if (stringAction.equals(UtilContent.writeLogScreens)) {
+                    Server.forwarder.writeLogScreens();
+                } else if (stringAction.equals(UtilContent.stopLogScreens)) {
+                    Server.forwarder.stopLogScreens();
+                } else if (stringAction.equals(UtilContent.showListLogScreens)) {
+                    Server.forwarder.getListLogScreens();
                 } else {
                     Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
                     switch (action.getAction()) {
@@ -60,6 +66,10 @@ public class ServerSession extends Session {
                         }
                         case UtilContent.killProcess: {
                             Server.forwarder.killProcessClient(stringAction);
+                            break;
+                        }
+                        case UtilContent.getLogImage: {
+                            Server.forwarder.getLogImage((String) action.getData());
                             break;
                         }
                     }

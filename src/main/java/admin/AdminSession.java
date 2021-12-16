@@ -8,7 +8,6 @@ import core.ProcessManager;
 import core.Session;
 import core.UtilContent;
 import core.model.Action;
-import core.model.Clients;
 import core.model.StringMat;
 import core.system.SystemInfo;
 import org.opencv.core.Mat;
@@ -30,6 +29,7 @@ public class AdminSession extends Session {
     private String id;
     private Thread camera;
     private AdminGui gui;
+    private ListImagePanel listImagePanel;
 
     public AdminSession(Socket skConnect, AdminGui gui) throws IOException {
         super(skConnect);
@@ -156,6 +156,11 @@ public class AdminSession extends Session {
                     } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println("Camera.observer stop!");
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
                         gui.cameraPanel.lbCamera.setIcon(gui.iconWarn);
                         return;
                     }
@@ -190,6 +195,11 @@ public class AdminSession extends Session {
                         thread1.start();
                     } catch (Exception e) {
                         e.printStackTrace();
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
                         gui.screensPanel.lbScreens.setIcon(gui.iconWarn);
                         System.out.println("Screenshot.observer stop!");
                         return;
@@ -287,9 +297,12 @@ public class AdminSession extends Session {
                     createConnectSystemInfo();
                     System.out.println("SystemInfo running...");
                 } else if(stringAction.equals(UtilContent.reset)){
+                    disposeImagePanel();
                     reset();
                 } else if(stringAction.equals(UtilContent.onCloseClipboard)){
                     resetClipboard();
+                } else if(stringAction.equals(UtilContent.getLogImageNull)){
+                    JOptionPane.showMessageDialog(gui, "Log is null.");
                 } else {
                     Action action = new ObjectMapper().readerFor(Action.class).readValue(stringAction);
                     switch (action.getAction()){
@@ -308,11 +321,42 @@ public class AdminSession extends Session {
                             gui.destroyUserButton((String) action.getData());
                             break;
                         }
+                        case UtilContent.sendTypeScreensLog: {
+                            ArrayList<String> data = (ArrayList<String>) action.getData();
+                            listImagePanel = new ListImagePanel(this, data, gui.currentHostNameClient, new ListImagePanel.ScreensLog() {
+                                @Override
+                                public void get(String nameFile, String folder) {
+                                    try {
+                                        Action action1 = new Action(UtilContent.getLogImage, folder + "\\" + nameFile);
+                                        String stringAction = new ObjectMapper().writeValueAsString(action1);
+                                        sendRequest(stringAction);
+                                    } catch (JsonProcessingException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                            break;
+                        }
+                        case UtilContent.getLogImage: {
+                            StringMat stringMat = new StringMat();
+                            stringMat.castToStringMat((LinkedHashMap<String, Object>) action.getData());
+                            Mat image = stringMat.toMat();
+                            Core.resizeAuto(image, Config.GUI_WIDTH - 10, Config.GUI_HEIGHT - 100);
+                            new ImagePopup(HighGui.toBufferedImage(image));
+                            break;
+                        }
                     }
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void disposeImagePanel(){
+        if (listImagePanel != null){
+            listImagePanel.dispose();
+            listImagePanel = null;
         }
     }
 
@@ -364,6 +408,22 @@ public class AdminSession extends Session {
             public void stopScreens() {
                 sendRequest(UtilContent.stopScreens);
                 resetScreens();
+            }
+
+            @Override
+            public void writeLog() {
+                sendRequest(UtilContent.writeLogScreens);
+            }
+
+            @Override
+            public void stopLog() {
+                sendRequest(UtilContent.stopLogScreens);
+            }
+
+            @Override
+            public void showLog() {
+                disposeImagePanel();
+                sendRequest(UtilContent.showListLogScreens);
             }
         });
 

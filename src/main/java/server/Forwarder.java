@@ -3,17 +3,18 @@ package server;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import core.Core;
+import core.ImageHandle;
 import core.UtilContent;
 import core.model.Action;
-import core.model.Clients;
+import core.model.StringMat;
+import org.opencv.core.Mat;
+import org.opencv.highgui.HighGui;
+import org.opencv.imgcodecs.Imgcodecs;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Forwarder {
     private String systemInfoReceiveReady = "";
@@ -21,11 +22,14 @@ public class Forwarder {
     private ServerSession clientServer;
     private ServerSession adminServer;
     public Thread threadSystemInfo;
+    private Thread threadScreens;
+    public int timeSave;
 
     public Forwarder() {
         adminServer = null;
         clientServer = null;
         mapWork = new HashMap<>();
+        timeSave = UtilContent.onceMinute;
     }
 
     public void createConnectSystemInfo() throws IOException {
@@ -106,6 +110,7 @@ public class Forwarder {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            stopLogScreens();
             clientServer.sendRequest(UtilContent.reset);
             clientServer.closeSocket();
             clientServer = null;
@@ -137,7 +142,7 @@ public class Forwarder {
         if (adminServer == null || clientServer == null || adminServer.getSkScreens() == null || clientServer.getSkScreens() == null) {
             return;
         }
-        forwardUtil(adminServer.getWriterScreens(), clientServer.getReaderScreens(), "Screens");
+        forwardScreens(adminServer.getWriterScreens(), clientServer.getReaderScreens(), "Screens");
     }
 
     public void runClipboard() throws IOException {
@@ -161,16 +166,69 @@ public class Forwarder {
     }
 
     public void resetScreens(){
+        stopLogScreens();
         clientServer.sendRequest(UtilContent.stopScreens);
         clientServer.resetScreens();
         adminServer.resetScreens();
     }
 
+    public void stopLogScreens(){
+        if(threadScreens != null && !threadScreens.isInterrupted()){
+            threadScreens.interrupt();
+        }
+    }
+
+    public void getListLogScreens(){
+        try {
+            Action action = new Action(UtilContent.sendTypeScreensLog, ImageHandle.scanImage(clientServer.clientHostName));
+            String stringAction = new ObjectMapper().writeValueAsString(action);
+            adminServer.sendRequest(stringAction);
+        } catch (Exception e) {
+            e.printStackTrace();
+            adminServer.sendRequest(UtilContent.getLogImageNull);
+            System.out.println("Send null data.");
+        }
+    }
+
+    public void getLogImage(String path){
+        try {
+            Mat image = Imgcodecs.imread("image\\" + path);
+            StringMat stringMat = new StringMat(image);
+            Action action = new Action(UtilContent.getLogImage, stringMat);
+            String stringAction = new ObjectMapper().writeValueAsString(action);
+            adminServer.sendRequest(stringAction);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized void writeLogScreens(){
+        int delay = 1000;
+        threadScreens = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true){
+                    try {
+                        Thread.sleep(delay);
+                        timeSave -= delay;
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        System.out.println("End log screens.");
+                        break;
+                    }
+                }
+            }
+        });
+        threadScreens.start();
+    }
+
     public void disconnectClient(){
+        stopLogScreens();
         clientServer.sendRequest(UtilContent.disconnect);
     }
 
     public void shutDownClient(){
+        stopLogScreens();
         clientServer.sendRequest(UtilContent.shutdown);
     }
 
@@ -255,9 +313,9 @@ public class Forwarder {
             @Override
             public void run() {
                 while (true) {
-                    String dataSystem = "";
+                    String data = "";
                     try {
-                        dataSystem = readerClient.readLine();
+                        data = readerClient.readLine();
                     } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println(type + " stop!");
@@ -265,11 +323,58 @@ public class Forwarder {
                     }
                     //System.out.println(dataSystem.length());
                     try {
-                        Core.writeString(writerAdmin, dataSystem);
+                        Core.writeString(writerAdmin, data);
                     } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println(type + "stop!");
-                        return;
+                        break;
+                    }
+                }
+            }
+        });
+        thread.start();
+    }
+
+    public synchronized void forwardScreens(BufferedWriter writerAdmin, BufferedReader readerClient, String type) throws IOException {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    String data = "";
+                    try {
+                        data = readerClient.readLine();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println(type + " stop!");
+                        break;
+                    }
+                    //System.out.println(dataSystem.length());
+                    try {
+                        Core.writeString(writerAdmin, data);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println(type + "stop!");
+                        break;
+                    }
+                    //Sava log image
+                    if(timeSave <= 0){
+                        String finalData = data;
+                        Thread thread1 = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    System.out.println("Save image.");
+                                    StringMat stringMat = new ObjectMapper().readerFor(StringMat.class).readValue(finalData);
+                                    Mat image = stringMat.toMat();
+                                    ImageHandle.storeImage(HighGui.toBufferedImage(image), clientServer.clientHostName);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    System.out.println("Can not save!");
+                                }
+                            }
+                        });
+                        thread1.start();
+                        timeSave = UtilContent.onceMinute;
                     }
                 }
             }
@@ -309,6 +414,7 @@ public class Forwarder {
         adminServer.interrupt();
         adminServer = null;
         systemInfoReceiveReady = "";
+        stopLogScreens();
         if (clientServer != null) {
             try {
                 Core.writeString(clientServer.getWriterSystemInfo(), UtilContent.stopSystemInfo);
@@ -328,17 +434,20 @@ public class Forwarder {
         mapWork.remove(id);
         System.out.println("Disconnect client " + id + "!!!");
         //trường hợp mất connect với current client
-        adminServer.sendRequest(UtilContent.reset);
-        clientServer = firstOrNonClient();
-        if (clientServer != null) {
-            try {
-                clientServer.sendRequest(UtilContent.createConnectSystemInfo);
-                runSystemInfo();
-            } catch (IOException e) {
-                e.printStackTrace();
+        if(clientServer.getId() == id){
+            stopLogScreens();
+            adminServer.sendRequest(UtilContent.reset);
+            clientServer = firstOrNonClient();
+            if (clientServer != null) {
+                try {
+                    clientServer.sendRequest(UtilContent.createConnectSystemInfo);
+                    runSystemInfo();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("Wait while client connect...");
             }
-        } else {
-            System.out.println("Wait while client connect...");
         }
         try {
             destroyClient(id + "");
