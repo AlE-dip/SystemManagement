@@ -4,6 +4,8 @@ import oshi.hardware.ComputerSystem;
 import oshi.hardware.HWDiskStore;
 import oshi.hardware.HardwareAbstractionLayer;
 
+import java.text.DecimalFormat;
+
 public class SystemInfo {
     private String model;
     private String manufacturer;
@@ -55,11 +57,12 @@ public class SystemInfo {
         processor = new Processor(hardwareAbstractionLayer.getProcessor());
         network = new Network(operatingSystem.getNetworkParams(), hardwareAbstractionLayer.getNetworkIFs(true));
         diskInfo = "";
+        DecimalFormat decimalFormat = new DecimalFormat("#.#");
         for (HWDiskStore hwDiskStore: hardwareAbstractionLayer.getDiskStores()){
             diskInfo += "Model: " + hwDiskStore.getModel() + " ";
             diskInfo += "Name: " + hwDiskStore.getName() + " ";
             diskInfo += "Serial: " + hwDiskStore.getSerial() + " ";
-            diskInfo += "Size: " + Math.round(hwDiskStore.getSize() / 1073741824.0 * 10) / 10 + "GB\n";
+            diskInfo += "Size: " + decimalFormat.format(hwDiskStore.getSize() / 1073741824.0) + "GB\n";
         }
     }
 
