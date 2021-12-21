@@ -258,10 +258,14 @@ public class ClientSession extends Session {
                         Action action = new Action(UtilContent.sendTypeImage, data);
                         String stringAction = mapper.writeValueAsString(action);
                         Core.writeString(writerClipboard, stringAction);
-                    } catch (UnsupportedFlavorException ex) {
-                        System.out.println("Not string or image UnsupportedFlavorException");
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
+                    } catch (IOException | UnsupportedFlavorException ex) {
+                        try {
+                            Action action = new Action(UtilContent.sendTypeString, "<data other type>");
+                            String stringAction = mapper.writeValueAsString(action);
+                            Core.writeString(writerClipboard, stringAction);
+                        } catch (IOException exc) {
+                            exc.printStackTrace();
+                        }
                     }
                 }
             }
