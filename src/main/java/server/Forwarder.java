@@ -156,7 +156,7 @@ public class Forwarder {
         if (adminServer == null || clientServer == null || adminServer.getSkKeyboard() == null || clientServer.getSkKeyboard() == null) {
             return;
         }
-        forwardDebug(adminServer.getWriterKeyboard(), clientServer.getReaderKeyboard(), "Keyboard");
+        forwardUtil(adminServer.getWriterKeyboard(), clientServer.getReaderKeyboard(), "Keyboard");
     }
 
     public void resetCamera(){
